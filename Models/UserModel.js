@@ -1,4 +1,4 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model ,mongoose} = require('mongoose');
 const AutoIncrement = require("mongoose-sequence")(mongoose);
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
@@ -9,20 +9,13 @@ const validateEmail = function (email) {
   return regex.test(email);
 };
 
-const baseSchema = new Schema({
+const baseSchema = new Schema({ 
   _id: Number,
   firstName: String,
   lastName: String,
-  email: {
-    type: String,
-    required: true,
-    validate: [validateEmail, "invalid email"],
-    unique: true,
-  },
   password: { type: String, select: false },
   image:{ type : String , default:"default.jpg"},
-  role: { type: String, required: true },
-  phoneNumber: {type:String, unique:true},
+  role: { type: String, required: true , enum: ['admin', 'user', 'employee', 'manager'] },
   active: {
     type: Boolean,
     default: true,
@@ -33,6 +26,7 @@ const baseSchema = new Schema({
 }
 ,{ timestamps: true});
 
+//check on password in model not selected with the other data
 baseSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
@@ -48,18 +42,32 @@ baseSchema.methods.createPasswordRandomToken = async function () {
   return resetToken;
 };
 
-baseSchema.plugin(AutoIncrement, { id: "user_id", inc_field: "_id" });
+baseSchema.plugin(AutoIncrement, { id: "user", inc_field: "_id" });
 
 
 //mapping
 //inheriting from the base schema
 const UserSchema = new Schema({
-  iringDate: {type:Date, default:Date.now()},
-  salary: {type:Decimal}
+  email: {
+    type: String,
+    required: true,
+    validate: [validateEmail, "invalid email"],
+    unique: true,    //separated from the base for the uniquness
+  },
+  phoneNumber: {type:String, unique:true},
+  hiringDate: {type:Date, default:Date.now()},
+  salary:  { type: Number, default: 0.0}
 });
 UserSchema.add(baseSchema);
 
 const BorrowerSchema = new Schema({
+  email: {
+    type: String,
+    required: true,
+    validate: [validateEmail, "invalid email"],
+    unique: true,
+  },
+  phoneNumber: {type:String, unique:true},
   wishList: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Book' }],
 });
 BorrowerSchema.add(baseSchema);

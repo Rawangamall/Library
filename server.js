@@ -1,28 +1,26 @@
 const express= require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
 const path=require("path"); 
 require("dotenv").config({ path: "config.env" });
 
 // const LoginRoute = require("./Routes/LoginRoute");
-// const UserRoute = require("./Routes/UserRoute");
+ const UserRoute = require("./Routes/UserRoute");
 // const BookRoute = require("./Routes/BookRoute");
 
 //server
 const server = express();
 let port= process.env.PORT||8080;
+
 server.listen(port,()=>{
-    console.log("server is listenng.....",port);
+    console.log("server is listenng...",port);
 });
 
 //db connection
 mongoose.set("strictQuery", true); //warning
-
-mongoose.connect(process.env.DB_STRING)
+mongoose.connect(process.env.DB_STRING, { useNewUrlParser: true, useUnifiedTopology: true })
 	    .then(() => {
 		 console.log("DB connected");
-            server.listen(port, () => {
-                console.log("server is listenng...", port);
-            });
      	})
 	   .catch((error) => {
 		 console.log("Db connection Problem " + error);
@@ -41,14 +39,12 @@ server.use(express.urlencoded({extended:false}));
 
 //Routes 
 // server.use(LoginRoute)
-// server.use(UserRoute)
+ server.use(UserRoute)
 // server.use(BookRoute)
 
 //Not Found Middleware
 server.use((request, response, next) => {
-	response
-		.status(404)
-		.json({ message: `${request.originalUrl} not found on this server!` });
+	response.status(404).json({ message: `${request.originalUrl} not found on this server!` });
 });
 
 //Global error handeling Middleware
