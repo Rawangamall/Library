@@ -4,7 +4,7 @@ const cors = require("cors");
 const path=require("path"); 
 require("dotenv").config({ path: "config.env" });
 
-// const LoginRoute = require("./Routes/LoginRoute");
+ const LoginRoute = require("./Routes/LoginRoute");
  const UserRoute = require("./Routes/UserRoute");
 // const BookRoute = require("./Routes/BookRoute");
 
@@ -38,7 +38,7 @@ server.use(express.json());
 server.use(express.urlencoded({extended:false}));
 
 //Routes 
-// server.use(LoginRoute)
+ server.use(LoginRoute)
  server.use(UserRoute)
 // server.use(BookRoute)
 

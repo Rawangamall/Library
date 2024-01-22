@@ -17,7 +17,7 @@ router.route("/users")
 
 router.route("/user/:id")
       .get(limitMW.rateLimit,userController.getUserProfile)   //auth,authorize(["borrower","employee"]),
-      .patch(limitMW.rateLimit,userController.UpdateUser)
+      .patch(limitMW.rateLimit,upload.none(),userController.UpdateUser)
       .delete(limitMW.rateLimit,userController.delUser)
 
 module.exports=router;
