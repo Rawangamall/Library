@@ -2,7 +2,8 @@ const JWT = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
 
 const { User, Borrower } = require("./../Models/UserModel");
-const catchAsync = require('./../Utils/CatchAsync');
+const BorrowerClass = require("./../Classes/BorrowerClass");
+const catchAsync = require('./../Utils/CatchAsync'); 
 const AppError = require('./../Utils/appError');
 const TwilioService = require('./../Utils/SMS_service');
 
@@ -113,6 +114,20 @@ class BorrowerAuth extends AuthBase {
     constructor() {
         super(Borrower); // Override the model
     }
+    Register =  catchAsync(async (req, res, next) =>{
+
+        const hash = await bcrypt.hash(req.body.password, salt);
+        const { firstName, lastName,phoneNumber,role, email,wishlist} = req.body;
+  
+        const newBorrower = new BorrowerClass(firstName, lastName,phoneNumber,role, email,hash,wishlist);
+          console.log(typeof(newBorrower),newBorrower)
+        const borrower = new Borrower(newBorrower);
+        await borrower.save();
+   
+        res.status(201).json(newBorrower);
+      }
+    );
+  
 }
 
 class UserAuth extends AuthBase {

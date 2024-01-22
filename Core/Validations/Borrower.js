@@ -1,7 +1,7 @@
 const { body} = require("express-validator");
-const Borrower = require("./../../Models/UserModel");
+const {Borrower} = require("./../../Models/UserModel");
 
-exports.UserValidPOST = [
+exports.BorrowerValidPOST = [
   body('firstName').isString().withMessage('Please enter your name'),
   body('lastName').isString().withMessage('Please enter your name'),
   body('email')
@@ -18,7 +18,7 @@ exports.UserValidPOST = [
       body('phoneNumber').isMobilePhone().withMessage('Please enter a valid phone number'),
 ];
 
-exports.UserValidPATCH = [
+exports.BorrowerValidPATCH = [
     body('firstName').isString().optional().withMessage('Please enter your name'),
     body('lastName').isString().optional().withMessage('Please enter your name'),
     body('email')
