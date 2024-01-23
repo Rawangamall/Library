@@ -11,8 +11,7 @@ exports.BookValidPOST = [
   .custom(async (value, { req }) => {
     const { floor, section, shelf } = req.body;
     const shelfLocation = `${floor}-${section}-${shelf}`;
-    
-    const existingBook = await Book.findOne({ where: { shelfLocation } });
+    const existingBook = await Book.findOne({ shelfLocation: shelfLocation });
 
     if (existingBook) {
       throw new Error('Shelf location already filled with another book');
@@ -29,6 +28,17 @@ exports.BookValidPATCH = [
     body('quantity').isInt().optional().withMessage('Please enter the quantity number'),
     body('floor').isString().optional().withMessage('Please enter the floor number'),
     body('section').isString().optional().withMessage('Please enter the section'),
-    body('shelf').isString().optional().withMessage('Please enter the shelf number'),
+    body('shelf').isString().optional().withMessage('Please enter the shelf number')
+    .custom(async (value, { req }) => {
+      const { floor, section, shelf } = req.body;
+      const shelfLocation = `${floor}-${section}-${shelf}`;
+      const existingBook = await Book.findOne({ shelfLocation: shelfLocation });
+  
+      if (existingBook) {
+        throw new Error('Shelf location already filled with another book');
+      }
+  
+      return true;
+    }),
   
   ];

@@ -6,7 +6,7 @@ require("dotenv").config({ path: "config.env" });
 
  const LoginRoute = require("./Routes/LoginRoute");
  const UserRoute = require("./Routes/UserRoute");
-// const BookRoute = require("./Routes/BookRoute");
+const BookRoute = require("./Routes/BookRoute");
 
 //server
 const server = express();
@@ -40,7 +40,7 @@ server.use(express.urlencoded({extended:false}));
 //Routes 
  server.use(LoginRoute)
  server.use(UserRoute)
-// server.use(BookRoute)
+server.use(BookRoute)
 
 //Not Found Middleware
 server.use((request, response, next) => {
