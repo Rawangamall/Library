@@ -25,6 +25,6 @@ const bookBorrowingSchema = new Schema({
   }
 }, { timestamps: true });
 
-const BookBorrowing = model('BookBorrowing', bookBorrowingSchema);
+const BorrowingModel = model('Borrowing', bookBorrowingSchema);
 
-module.exports = {BookBorrowing};
+module.exports = BorrowingModel;

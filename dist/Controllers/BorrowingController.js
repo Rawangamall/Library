@@ -1,13 +1,7 @@
 "use strict";
-const { BookBorrowing } = require('./../Models/BorrowingModel');
-const JWT = require("jsonwebtoken");
-const { promisify } = require("util");
+Object.defineProperty(exports, "__esModule", { value: true });
+const BookBorrowing = require('./../Models/BorrowingModel');
 const CatchAsync = require('./../Utils/CatchAsync');
 class BorrowingOperations {
-    static test = "heelo";
-    static logBookBorrowing() {
-        console.log(BookBorrowing);
-    }
+    static test = "test";
 }
-// Call the method to log BookBorrowing
-BorrowingOperations.logBookBorrowing();

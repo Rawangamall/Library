@@ -1,14 +1,9 @@
-import BookBorrowing from '@models/BorrowingModel';
-const JWT= require("jsonwebtoken");
-const { promisify } = require("util")
+const BookBorrowing = require('./../Models/BorrowingModel');
 const CatchAsync = require('./../Utils/CatchAsync');
-import { Request ,Response,NextFunction} from 'express';
+import JWT = require("jsonwebtoken");
+import { promisify } from "util";
 
 class BorrowingOperations {
+static test:string = "test"
 
-    static createOperations =  CatchAsync(async (req:Request,res:Response,next:NextFunction)=>{
-
-})
 }
-
-export default BorrowingOperations;
