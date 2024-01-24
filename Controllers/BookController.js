@@ -1,16 +1,20 @@
 const Book = require('./../Models/BookModel');
-const BookClass = require('./../Classes/BookClass');
+const {BookClass ,RentalBook} = require('./../Classes/BookClass');
 const CatchAsync = require('./../Utils/CatchAsync');
 
 class BookController {
   
     static createBook =  CatchAsync(async (req, res, next) =>{
-  
-        const {title,author ,quantity,floor,section,shelf} = req.body;
-        const shelfLocation = `${floor}-${section}-${shelf}`;
+        let newBook;
+        const {title,author ,quantity,floor,section,shelf,type,fee} = req.body;
+        const shelfLocation = `${floor}-${section.toUpperCase()}-${shelf}`;
 
-        const newBook = new BookClass(title,author ,parseInt(quantity),shelfLocation);
-
+        if(type === 'free'){
+            newBook = new BookClass(title,author ,parseInt(quantity),shelfLocation);
+        }else if(type === 'rental'){
+           newBook = new RentalBook(title,author ,parseInt(quantity),shelfLocation,parseInt(fee));
+        }
+        
         const book = new Book(newBook);
         await book.save();
    

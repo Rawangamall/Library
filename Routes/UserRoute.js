@@ -12,12 +12,12 @@ const limitMW = require("./../Middlewares/rateLimitMW")
 
 
 router.route("/users")
-      .post(limitMW.rateLimit,upload.none(),validationData.UserValidPOST,validationMW,userController.createUser)   //auth,authorize(["borrower","employee"]),
-      .get(limitMW.rateLimit,userController.getAllUsers)   //auth,authorize(["borrower","employee"]),
+      .post(limitMW.rateLimit,upload.none(),validationData.UserValidPOST,validationMW,userController.createUser)   //auth,authorize(['admin', 'manager']),
+      .get(limitMW.rateLimit,userController.getAllUsers)   //auth,authorize(['admin', 'manager']),
 
 router.route("/user/:id")
-      .get(limitMW.rateLimit,userController.getUserProfile)   //auth,authorize(["borrower","employee"]),
-      .patch(limitMW.rateLimit,upload.none(),userController.UpdateUser)
-      .delete(limitMW.rateLimit,userController.delUser)
+      .get(limitMW.rateLimit,userController.getUserProfile)   //auth,authorize(['admin','employee', 'manager']),
+      .patch(limitMW.rateLimit,upload.none(),userController.UpdateUser)   //auth,authorize(['admin','employee', 'manager']),
+      .delete(limitMW.rateLimit,userController.delUser)   //auth,authorize(['admin']),
 
 module.exports=router;

@@ -12,13 +12,13 @@ const limitMW = require("./../Middlewares/rateLimitMW")
 
 
 router.route("/books")
-      .post(limitMW.rateLimit,upload.none(),validationData.BookValidPOST,validationMW,BookController.createBook)   
-      .get(limitMW.rateLimit,BookController.getAllBooks)   
+      .post(limitMW.rateLimit,upload.none(),validationData.BookValidPOST,validationMW,BookController.createBook)    //auth,authorize(['employee', 'manager']),
+      .get(limitMW.rateLimit,BookController.getAllBooks)    //auth,authorize(['admin','employee', 'manager','borrower']),
 
 router.route("/book/:id")
-      .patch(limitMW.rateLimit,upload.none(),validationData.BookValidPATCH,validationMW,BookController.UpdateBook)   
-      .get(limitMW.rateLimit,BookController.getBook)
-      .delete(BookController.delBook)
+      .patch(limitMW.rateLimit,upload.none(),validationData.BookValidPATCH,validationMW,BookController.UpdateBook) //auth,authorize(['employee', 'manager']),
+      .get(limitMW.rateLimit,BookController.getBook)  //auth,authorize(['admin','employee', 'manager','borrower']),
+      .delete(BookController.delBook)  //auth,authorize(['employee', 'manager']),
       
 
 

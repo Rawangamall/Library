@@ -1,6 +1,6 @@
 const { Schema, model } = require('mongoose');
 
-const borrowingSchema = new Schema({
+const bookBorrowingSchema = new Schema({
   book: {
     type: Schema.Types.ObjectId,
     ref: 'Book',
@@ -13,19 +13,18 @@ const borrowingSchema = new Schema({
   },
   dueDate: {
     type: Date,
-    required: true,
-    default: () => {
-      const currentDate = new Date();
-      currentDate.setDate(currentDate.getDate() + 14); // Adding 14 days
-      return currentDate;
-    }
+    required: true
   },
   returned: {
     type: Boolean,
     default: false
+  },
+  rentalFee: {
+    type: Number, // Only applicable for rental books
+    default: 0
   }
 }, { timestamps: true });
 
-const Borrowing = model('Borrowing', borrowingSchema);
+const BookBorrowing = model('BookBorrowing', bookBorrowingSchema);
 
-module.exports = Borrowing;
+module.exports = BookBorrowing;

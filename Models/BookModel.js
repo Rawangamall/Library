@@ -15,11 +15,22 @@ const bookSchema = new Schema({
     default: 0
   },
   shelfLocation: {
-    type: String,   //Hierarchical as Floor-Section-Shelf : 2-3A-105
+    type: String,   //Hierarchical as Floor-Section-Shelf : 2-A-105
     required: true,
     unique: true
+  },
+  bookType: {
+    type: String,
+    required: true,
+    enum: ['rental', 'free'] 
+} , 
+  rentalFee: {   //per hr
+    type: Number,
+    required: true ,
+    default: 0
   }
 }, { timestamps: false });
+
 
 const Book = model('Book', bookSchema);
 
