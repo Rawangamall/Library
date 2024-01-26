@@ -1,13 +1,13 @@
 {
     "compilerOptions": {
-      "target": "ESNext",
+      "target": "ES6",
       "module": "CommonJS",
       "moduleResolution": "Node",
-      "outDir": "./dist/Controllers",      // compiled JavaScript
+      "outDir": "./Controllers",      // compiled JavaScript
       "rootDir": "./src",        //input ts files
       "strict": true,
       "paths": {
-        "@models/*": ["./dist/Models/*"]
+        "@models/*": ["./Models/*"]
       }
     },
     "include": ["src/**/*.ts"],

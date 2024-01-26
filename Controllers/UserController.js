@@ -9,24 +9,24 @@ const salt = bcrypt.genSaltSync(saltRounds);
 class UserController {
   
   static createUser =  CatchAsync(async (req, res, next) =>{
-
       const hash = await bcrypt.hash(req.body.password, salt);
       const { firstName, lastName,phoneNumber,role, email,salary} = req.body;
-
       //user object from user class
       const newUser = new UserClass(firstName, lastName,phoneNumber,role, email,hash,parseFloat(salary));
-        //console.log(typeof(newUser),newUser)
       const user = new User(newUser);
-      await user.save();
+      console.log('User Object:', user);
+
+      await user.save(newUser);
  
       res.status(201).json(newUser);
-    }
+
+          }
   );
 
   static getUserProfile = CatchAsync(async (req, res, next) => {
       const userId = parseInt(req.params.id);
+      const user = await User.findById(userId);     //.select('-password -code -passwordResetExpires')   jest error
 
-      const user = await User.findById(userId).select('-password -code -passwordResetExpires');
       if (!user) {
         return res.status(400).json({ error: "User not found" });
       }
