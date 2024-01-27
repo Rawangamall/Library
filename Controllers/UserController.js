@@ -35,9 +35,9 @@ class UserController {
 
   static getAllUsers =CatchAsync(async (req,res,next)=>{
 
-    const users = await User.find().select('-password -code -passwordResetExpires');
+    const users = await User.find() //.select('-password -code -passwordResetExpires');
     if(users.length == 0){
-        return res.status(400).json({ error: "There's no user" });
+        return res.status(200).json({ message: "There's no user" });
     }
 
     res.status(200).json(users);

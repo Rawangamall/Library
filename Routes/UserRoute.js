@@ -13,7 +13,7 @@ const limitMW = require("./../Middlewares/rateLimitMW")
 
 router.route("/users")
       .post(limitMW.rateLimit,upload.none(),validationData.UserValidPOST,validationMW,userController.createUser)   //auth,authorize(['admin', 'manager']),
-      .get(limitMW.rateLimit,userController.getAllUsers)   //auth,authorize(['admin', 'manager']),
+      .get(auth,authorize(['admin', 'manager']),limitMW.rateLimit,userController.getAllUsers)  
 
 router.route("/user/:id")
       .get(limitMW.rateLimit,userController.getUserProfile)   //auth,authorize(['admin','employee', 'manager']),
