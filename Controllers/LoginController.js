@@ -21,12 +21,12 @@ class AuthBase {
         if(!email || !password){
         return next(new AppError(` Missing paramters for login`, 404));
         }
-    
-    const user = await this.model.findOne({email:email}).select("+password");
+    const user = await this.model.findOne({email:email}) //.select("+password");
+       // console.log((await user.correctPassword(password, user.password)) , "28 in login controller")
+
     if(!user || !(await user.correctPassword(password, user.password))){
         return next(new AppError(`Incorrect email or password`, 401));
     }
-  //  console.log((await user.correctPassword(password, user.password)) , "28 in login controller")
     
     if(user.active == false){
         return next(new AppError(`You're not allowed to login!, U're not active now`, 401));

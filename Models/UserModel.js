@@ -19,26 +19,14 @@ const baseSchema = new Schema({
     type: Boolean,
     default: true,
   },
-   
-  code: String,
-  passwordResetExpires: Date,
+
 }
 ,{ timestamps: true});
 
 //check on password in model not selected with the other data
 baseSchema.methods.correctPassword = async function (
-  candidatePassword,
-  userPassword
-) {
+  candidatePassword, userPassword) {
   return await bcrypt.compare(candidatePassword, userPassword);
-};
-
-baseSchema.methods.createPasswordRandomToken = async function () {
-  const resetToken = crypto.randomBytes(32).toString("hex");
-  this.code = crypto.createHash("sha256").update(resetToken).digest("hex");
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; //10 min
-
-  return resetToken;
 };
 
 baseSchema.plugin(AutoIncrement, { id: "user", inc_field: "_id" });

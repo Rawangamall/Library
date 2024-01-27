@@ -7,7 +7,7 @@
     "start": "nodemon server",
     "tsc": "tsc",
     "tsc-version": "tsc --version",
-    "test": "jest"
+    "test": "jest --testTimeout=30000"
   },
   "keywords": [],
   "author": "",

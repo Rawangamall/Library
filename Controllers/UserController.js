@@ -14,7 +14,6 @@ class UserController {
       //user object from user class
       const newUser = new UserClass(firstName, lastName,phoneNumber,role, email,hash,parseFloat(salary));
       const user = new User(newUser);
-      console.log('User Object:', user);
 
       await user.save(newUser);
  

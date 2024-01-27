@@ -1,19 +1,26 @@
+const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../server'); 
 
-const { User } = require('./../Models/UserModel');
 
-jest.mock('./../Models/UserModel');
+const { User } = require('./../Models/UserModel');
+jest.mock('./../Models/UserModel')
 
 let server; 
 
 beforeAll(() => {
-  server = app.listen(); 
+  return new Promise((resolve) => {
+    server = app.listen(8081, resolve);
+  });
 });
 
-afterAll((done) => {
-  server.close(done); 
+afterAll(async () => {
+  await mongoose.connection.close();
+  return new Promise((resolve) => {
+    server.close(resolve);
+  });
 });
+
 
 
 describe('UserController', () => {
@@ -47,8 +54,35 @@ describe('UserController', () => {
       User.findById.mockResolvedValue(6);
 
       const response = await request(app).get('/user/6');
-      
       expect(response.status).toBe(200);
     });
   });
 });
+
+
+describe('LoginController', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('login User', () => {
+      it('should create a new user', async () => {
+        const userData = {
+          email: 'rawan.gamaal21@gmail.com',
+          password: '1234jemi!', 
+        };
+
+        User.findOne = jest.fn().mockResolvedValue({
+          select: jest.fn(),
+          correctPassword: jest.fn().mockResolvedValue(true),
+        });
+        
+        const response = await request(app)
+          .post('/dashboard/login')
+          .send(userData);
+            console.log(response.text)  
+          expect(response.status).toBe(200);
+      });
+    });
+  
+})
