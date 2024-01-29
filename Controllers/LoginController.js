@@ -120,7 +120,7 @@ class BorrowerAuth extends AuthBase {
         const { firstName, lastName,phoneNumber,role, email,wishlist} = req.body;
   
         const newBorrower = new BorrowerClass(firstName, lastName,phoneNumber,role, email,hash,wishlist);
-          console.log(typeof(newBorrower),newBorrower)
+         // console.log(typeof(newBorrower),newBorrower)
         const borrower = new Borrower(newBorrower);
         await borrower.save();
    

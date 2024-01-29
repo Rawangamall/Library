@@ -24,7 +24,7 @@ const bookSchema = new Schema({
     required: true,
     enum: ['rental', 'free'] 
 } , 
-  rentalFee: {   //per hr
+  rentalFee: {   //per day
     type: Number,
     required: true ,
     default: 0

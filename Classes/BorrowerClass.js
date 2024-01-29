@@ -6,7 +6,7 @@ class Borrower {
       this.role = "borrower";
       this.email = email;
       this.password = password;
-      this.wishlist = wishlist;
+      this.wishlist = [];
       this.image = "default.jpg";
 
     }  
