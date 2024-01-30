@@ -1,8 +1,8 @@
 const {User} = require('./../Models/UserModel');
 const UserClass = require('./../Classes/UserClass');
+const QueryOperation = require('./QueryOperations').default
 const bcrypt = require('bcrypt');
 const CatchAsync = require('./../Utils/CatchAsync');
-
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
 
@@ -34,8 +34,20 @@ class UserController {
   })
 
   static getAllUsers =CatchAsync(async (req,res,next)=>{
+    const { searchTerm } = req.query; 
+    const limit = parseInt(req.query.limit) || 7
+    const sortField = req.query.sortField || "createdAt"
+    const queryOperations = new QueryOperation();
 
-    const users = await User.find() //.select('-password -code -passwordResetExpires');
+    let usersQuery = User.find() 
+
+    if (searchTerm) {
+      usersQuery = queryOperations.search(usersQuery, searchTerm , ['email', 'role', 'phoneNumber']);
+    }
+
+    const filteredUsersQuery = queryOperations.sort(queryOperations.limit(usersQuery, limit), sortField); //nested query
+    const users = await filteredUsersQuery.exec();
+
     if(users.length == 0){
         return res.status(200).json({ message: "There's no user" });
     }

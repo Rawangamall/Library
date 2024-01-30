@@ -13,6 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt = require("bcrypt");
 const { Borrower } = require('./../Models/UserModel');
 const CatchAsync = require('./../Utils/CatchAsync');
+const QueryOperations_1 = require("./QueryOperations");
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
 class BorrowerController {
@@ -27,7 +28,14 @@ BorrowerController.getBorrowerProfile = CatchAsync((req, res, next) => __awaiter
     res.status(200).json(borrower);
 }));
 BorrowerController.getAllBorrowers = CatchAsync((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const borrowers = yield Borrower.find();
+    const { searchTerm, sortField, limit } = req.query;
+    let queryOperations = new QueryOperations_1.default();
+    let borrowersQuery = Borrower.find();
+    if (searchTerm) {
+        borrowersQuery = queryOperations.search(borrowersQuery, searchTerm, ['email', 'phoneNumber']);
+    }
+    const filteredUsersQuery = queryOperations.sort(queryOperations.limit(borrowersQuery, parseInt((limit || '5').toString(), 5)), sortField || 'createdAt'); //nested query
+    const borrowers = yield filteredUsersQuery.exec();
     if (borrowers.length === 0) {
         return res.status(200).json({ message: "There's no borrower" });
     }

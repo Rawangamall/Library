@@ -1,5 +1,6 @@
 const Book = require('./../Models/BookModel');
 const {BookClass ,RentalBook} = require('./../Classes/BookClass');
+const QueryOperation = require('./QueryOperations').default
 const CatchAsync = require('./../Utils/CatchAsync');
 
 class BookController {
@@ -33,8 +34,20 @@ class BookController {
     })
   
     static getAllBooks =CatchAsync(async (req,res,next)=>{
+      const { searchTerm } = req.query; 
+      const limit = parseInt(req.query.limit) || 6
+      const sortField = req.query.sortField || "createdAt"
+      const queryOperations = new QueryOperation();
+
+      let bookQuery =  Book.find()
+
+      if (searchTerm) {
+        bookQuery = queryOperations.search(bookQuery, searchTerm , ['author', 'title', 'bookType','shelfLocation']);
+      }
   
-      const books = await Book.find().select('-_id');
+      const filteredBooksQuery = queryOperations.sort(queryOperations.limit(bookQuery, limit), sortField); //nested query
+      const books = await filteredBooksQuery.exec();
+  
       if(books.length == 0){
           return res.status(400).json({ error: "There's no book" });
       }
