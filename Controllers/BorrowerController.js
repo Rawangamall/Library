@@ -34,7 +34,7 @@ BorrowerController.getAllBorrowers = CatchAsync((req, res, next) => __awaiter(vo
     if (searchTerm) {
         borrowersQuery = queryOperations.search(borrowersQuery, searchTerm, ['email', 'phoneNumber']);
     }
-    const filteredUsersQuery = queryOperations.sort(queryOperations.limit(borrowersQuery, parseInt((limit || '5').toString(), 5)), sortField || 'createdAt'); //nested query
+    const filteredUsersQuery = queryOperations.sort(queryOperations.limit(borrowersQuery, parseInt((limit || '5').toString())), sortField || 'createdAt'); //nested query
     const borrowers = yield filteredUsersQuery.exec();
     if (borrowers.length === 0) {
         return res.status(200).json({ message: "There's no borrower" });
