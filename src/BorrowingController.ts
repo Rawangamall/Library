@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as JWT from 'jsonwebtoken';
+import moment = require('moment');
 import { promisify } from 'util';
 
 const BookBorrowing = require('./../Models/BorrowingModel');
@@ -29,6 +30,11 @@ class BorrowingOperations {
         return res.status(400).json('Book Stock out, check it later!');
     }
 
+    const operation = await BookBorrowing.findOne({book:bookId,borrower:userId,returned:false})
+    if(operation){
+      return res.status(400).json('You\'re already borrowed that book!');
+    }
+
     let borrowingResult;
     if(book.bookType == "free"){
      borrowingResult = new BookBorrowing({borrower:userId, book:bookId, dueDate:dueDate});
@@ -36,13 +42,13 @@ class BorrowingOperations {
     }else if(book.bookType == "rental"){
 
       //calculate the rent
-      const currentDate: Date = new Date();
-      const dueDateObj: Date = new Date(dueDate);
-    
-      const currentTime: number = currentDate.getTime();
-      const dueTime: number = dueDateObj.getTime();
-      const diffInDays: number = Math.ceil((dueTime - currentTime) / (1000 * 60 * 60 * 24));
-      const rentAmount: number = diffInDays * Number(book.rentalFee);
+      const currentDate = moment();
+      const dueDateObj = moment(dueDate, 'YYYY-MM-DD', true);
+
+      const diffInDays = dueDateObj.diff(currentDate, 'days');
+      const rentAmount = diffInDays * book.rentalFee;
+  
+      req.body.rentAmount = rentAmount; 
 
      borrowingResult = new BookBorrowing({borrower:userId, book:bookId, dueDate:dueDate , rentalFee:rentAmount });
     }

@@ -8,14 +8,21 @@ exports.BorrowerValidPOST = [
   .isEmail().withMessage('enter valid email - يجب ادخال الايميل الصحيح')
   .custom(async (value) => {
     if(value){
-    const user = await Borrower.findOne({ where: { email: value } });
+    const user = await Borrower.findOne( { email: value } );
       if (user) {
         return Promise.reject('Email already in use - هذا الايميل مستخدم');
       }
     }
     }),
       body('password').isStrongPassword().withMessage('enter strong password include numbers and signs - يجب أن تكون كلمة المرور قوية. يجب أن تحتوي على أحرف كبيرة وصغيرة وأرقام ورموز.'),
-      body('phoneNumber').isMobilePhone().withMessage('Please enter a valid phone number'),
+      body('phoneNumber').isMobilePhone().withMessage('Please enter a valid phone number') .custom(async (value) => {
+        if(value){
+        const user = await Borrower.findOne( { phoneNumber: value } );
+          if (user) {
+            return Promise.reject('Phone already in use - هذا الرقم مستخدم');
+          }
+        }
+        }),
 ];
 
 exports.BorrowerValidPATCH = [

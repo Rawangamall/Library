@@ -12,8 +12,11 @@ var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt = require("bcrypt");
 const { Borrower } = require('./../Models/UserModel');
+const Book = require('./../Models/BookModel');
 const CatchAsync = require('./../Utils/CatchAsync');
 const QueryOperations_1 = require("./QueryOperations");
+const util_1 = require("util");
+const JWT = require("jsonwebtoken");
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
 class BorrowerController {
@@ -67,5 +70,26 @@ BorrowerController.deleteBorrower = CatchAsync((req, res, next) => __awaiter(voi
         return res.status(400).json({ error: "There's no borrower" });
     }
     res.status(200).json(borrower);
+}));
+BorrowerController.addWishBook = CatchAsync((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _b;
+    const bookId = req.params.id;
+    const token = (_b = req.headers.authorization) === null || _b === void 0 ? void 0 : _b.split(' ')[1];
+    if (!token) {
+        return res.status(401).json('You\'re not logged in, please go to login page');
+    }
+    const decoded = yield (0, util_1.promisify)(JWT.verify)(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
+    const book = Book.findById(bookId);
+    if (!book) {
+        return res.status(400).json({ message: 'Book not found' });
+    }
+    const borrower = yield Borrower.findById(userId);
+    if (borrower.wishList.length > 0 && borrower.wishList.includes(bookId)) {
+        return res.status(400).json({ message: 'Book is already in ur wishlist' });
+    }
+    borrower.wishList.push(bookId);
+    yield borrower.save();
+    res.status(200).json({ message: 'Book added to ur wishlist :)' });
 }));
 exports.default = BorrowerController;

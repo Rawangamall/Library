@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const JWT = require("jsonwebtoken");
+const moment = require("moment");
 const util_1 = require("util");
 const BookBorrowing = require('./../Models/BorrowingModel');
 const Book = require('./../Models/BookModel');
@@ -32,6 +33,10 @@ BorrowingOperations.borrowBook = CatchAsync((req, res, next) => __awaiter(void 0
     if (book.availableQuantity <= 0 || !book) {
         return res.status(400).json('Book Stock out, check it later!');
     }
+    const operation = yield BookBorrowing.findOne({ book: bookId, borrower: userId, returned: false });
+    if (operation) {
+        return res.status(400).json('You\'re already borrowed that book!');
+    }
     let borrowingResult;
     if (book.bookType == "free") {
         borrowingResult = new BookBorrowing({ borrower: userId, book: bookId, dueDate: dueDate });
@@ -39,12 +44,11 @@ BorrowingOperations.borrowBook = CatchAsync((req, res, next) => __awaiter(void 0
     }
     else if (book.bookType == "rental") {
         //calculate the rent
-        const currentDate = new Date();
-        const dueDateObj = new Date(dueDate);
-        const currentTime = currentDate.getTime();
-        const dueTime = dueDateObj.getTime();
-        const diffInDays = Math.ceil((dueTime - currentTime) / (1000 * 60 * 60 * 24));
-        const rentAmount = diffInDays * Number(book.rentalFee);
+        const currentDate = moment();
+        const dueDateObj = moment(dueDate, 'YYYY-MM-DD', true);
+        const diffInDays = dueDateObj.diff(currentDate, 'days');
+        const rentAmount = diffInDays * book.rentalFee;
+        req.body.rentAmount = rentAmount;
         borrowingResult = new BookBorrowing({ borrower: userId, book: bookId, dueDate: dueDate, rentalFee: rentAmount });
     }
     yield borrowingResult.save();

@@ -2,8 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import * as bcrypt from 'bcrypt';
 
 const {Borrower} = require('./../Models/UserModel');
+const Book = require('./../Models/BookModel');
 const CatchAsync = require('./../Utils/CatchAsync');
 import QueryOperation from './QueryOperations';
+import { promisify } from 'util';
+import * as JWT from 'jsonwebtoken';
+
 
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
@@ -76,6 +80,35 @@ class BorrowerController {
 
     res.status(200).json(borrower);
   });
+
+  static addWishBook = CatchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+    const bookId = req.params.id;
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if(!token){
+        return res.status(401).json('You\'re not logged in, please go to login page');
+     }
+    
+     type VerifyCallback = (token: string, secret: string) => Promise<any>;
+
+     const decoded = await (promisify(JWT.verify) as VerifyCallback)(token, process.env.JWT_SECRET as string);
+     const userId = decoded.id; 
+
+     const book = Book.findById(bookId);
+     if(!book){
+      return res.status(400).json({message:'Book not found'});
+     }
+
+    const borrower = await Borrower.findById(userId);
+    if (borrower.wishList.length > 0 && borrower.wishList.includes(bookId)) {
+      return res.status(400).json({message:'Book is already in ur wishlist'});      
+  }
+
+    borrower.wishList.push(bookId);
+    await borrower.save()
+    
+    res.status(200).json({message:'Book added to ur wishlist :)'});
+  })
 }
 
 export default BorrowerController;

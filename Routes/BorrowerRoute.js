@@ -12,11 +12,12 @@ const limitMW = require("./../Middlewares/rateLimitMW")
 
 
 router.route("/borrowers")
-      .get(auth,authorize(['admin', 'manager']),limitMW.rateLimit,BorrowerController.getAllBorrowers)  
+      .get(limitMW.rateLimit,auth,authorize(['admin', 'manager']),BorrowerController.getAllBorrowers)  
 
 router.route("/borrower/:id")
-      .get(limitMW.rateLimit,BorrowerController.getBorrowerProfile)   //auth,authorize(['admin','employee', 'manager']),
-      .patch(limitMW.rateLimit,upload.none(),validationData.BorrowerValidPATCH,validationMW,BorrowerController.updateBorrower)   //auth,authorize(['admin','employee', 'manager']),
-      .delete(limitMW.rateLimit,BorrowerController.deleteBorrower)   //auth,authorize(['admin']),
+      .get(limitMW.rateLimit,auth,authorize(['admin','employee', 'manager','borrower']),BorrowerController.getBorrowerProfile)   
+      .patch(limitMW.rateLimit,upload.none(),auth,authorize(['borrower']),validationData.BorrowerValidPATCH,validationMW,BorrowerController.updateBorrower)  
+      .delete(limitMW.rateLimit,auth,authorize(['admin']),BorrowerController.deleteBorrower) 
+      .post(limitMW.rateLimit,upload.none(),auth,authorize(['borrower']),BorrowerController.addWishBook)  //id param = bookid
 
 module.exports=router;
