@@ -9,6 +9,7 @@ const validationMW = require("./../Middlewares/validateMW")
 const auth = require("./../Middlewares/authenticationMW").auth
 const authorize = require("./../Middlewares/authorizationMW").authorize
 const limitMW = require("./../Middlewares/rateLimitMW")
+const PHVerifyMW = require("./../Middlewares/PhoneVerifactionMW").userPHVerifyMW.Verify
 
 
 router.route("/books")

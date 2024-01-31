@@ -13,6 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt = require("bcrypt");
 const { Borrower } = require('./../Models/UserModel');
 const Book = require('./../Models/BookModel');
+const Operations = require('./../Models/BorrowingModel');
 const CatchAsync = require('./../Utils/CatchAsync');
 const QueryOperations_1 = require("./QueryOperations");
 const util_1 = require("util");
@@ -65,10 +66,20 @@ BorrowerController.updateBorrower = CatchAsync((req, res, next) => __awaiter(voi
 }));
 BorrowerController.deleteBorrower = CatchAsync((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const borrowerId = parseInt(req.params.id);
-    const borrower = yield Borrower.findByIdAndDelete(borrowerId);
-    if (!borrower) {
-        return res.status(400).json({ error: "There's no borrower" });
+    const borrowerUser = yield Borrower.findById(borrowerId);
+    if (!borrowerUser) {
+        return res.status(404).json({ error: "borrower not found" });
     }
+    const operations = yield Operations.find({ borrower: borrowerId, returned: false });
+    if (operations.length > 0) {
+        const borrowedBooks = yield Book.find({ _id: { $in: operations.map((operation) => operation.book) } });
+        return res.status(400).json({
+            message: 'Borrower has books that haven\'t been returned',
+            operationIds: operations.map((operation) => operation._id),
+            borrowedBooks: borrowedBooks
+        });
+    }
+    const borrower = yield Borrower.findByIdAndDelete(borrowerId);
     res.status(200).json(borrower);
 }));
 BorrowerController.addWishBook = CatchAsync((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

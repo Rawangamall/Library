@@ -3,7 +3,9 @@ import * as bcrypt from 'bcrypt';
 
 const {Borrower} = require('./../Models/UserModel');
 const Book = require('./../Models/BookModel');
+const Operations = require('./../Models/BorrowingModel');
 const CatchAsync = require('./../Utils/CatchAsync');
+
 import QueryOperation from './QueryOperations';
 import { promisify } from 'util';
 import * as JWT from 'jsonwebtoken';
@@ -73,11 +75,24 @@ class BorrowerController {
   static deleteBorrower = CatchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const borrowerId = parseInt(req.params.id);
 
-    const borrower = await Borrower.findByIdAndDelete(borrowerId);
-    if (!borrower) {
-      return res.status(400).json({ error: "There's no borrower" });
+    const borrowerUser = await Borrower.findById(borrowerId);
+    if (!borrowerUser) {
+      return res.status(404).json({ error: "borrower not found" });
+    }
+  
+    const operations = await Operations.find({ borrower: borrowerId, returned: false });
+  
+    if (operations.length > 0) {
+      const borrowedBooks = await Book.find({ _id: { $in: operations.map((operation:any) => operation.book) } })
+  
+      return res.status(400).json({
+        message: 'Borrower has books that haven\'t been returned',
+        operationIds: operations.map((operation: any) => operation._id),
+        borrowedBooks:borrowedBooks
+      });
     }
 
+    const borrower = await Borrower.findByIdAndDelete(borrowerId);
     res.status(200).json(borrower);
   });
 

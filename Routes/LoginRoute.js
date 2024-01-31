@@ -6,6 +6,7 @@ const upload = multer();
 const {userAuth , borrowerAuth}=require("./../Controllers/LoginController");
 const validationData = require("./../Core/Validations/Borrower")
 const validationMW = require("./../Middlewares/validateMW")
+const auth = require("./../Middlewares/authenticationMW").auth
 
 
 router.route("/register")   //for borrowers only - user added by admin
@@ -31,6 +32,13 @@ router.route("/dashboard/forgetpassword")   //for dashboard users
 router.route("/dashboard/resetpassword")   //for dashboard users 
       .patch(upload.none(),userAuth.resetpassword)  
 
+router.route("/user/PhoneVerify")
+      .get(auth , userAuth.SendVerifactionCode) 
+      .patch(auth,upload.none(),userAuth.phoneVerify)   
+
+router.route("/borrower/PhoneVerify")
+      .get(auth , borrowerAuth.SendVerifactionCode) 
+      .patch(auth,upload.none(),borrowerAuth.phoneVerify)   
 
 
 module.exports=router;

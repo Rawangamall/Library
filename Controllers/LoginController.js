@@ -1,5 +1,6 @@
 const JWT = require("jsonwebtoken");
 const bcrypt = require('bcrypt');
+const { promisify } = require("util");
 
 const { User, Borrower } = require("./../Models/UserModel");
 const BorrowerClass = require("./../Classes/BorrowerClass");
@@ -87,7 +88,58 @@ class AuthBase {
     res.status(200).json({message:"success"});
     
     });
+
+    SendVerifactionCode =  catchAsync(async (req,res,next)=>{
+        const token = req.headers.authorization.split(' ')[1];
+        if(!token){
+        return next(new AppError('You\'re not logged in, please go to login page',401));
+        }
+        const decoded = await promisify(JWT.verify)(token,process.env.JWT_SECRET);
     
+        //verify if the user of that token still exist
+        const user = await this.model.findById(decoded.id);
+        if(!user){
+        return next(new AppError("The user of that token no longer exist"),401)
+        }
+    
+        const isSMSSent = await TwilioService.sendSMS(user.phoneNumber);
+    
+        if (!isSMSSent){
+            return next(new AppError("Error sending SMS. Please try again later!", 500));
+        }
+    
+        return res.status(200).json({ message: "Success: SMS sent for Verifaction" });
+    
+    })
+    
+    phoneVerify =  catchAsync(async (req,res,next)=>{
+        
+        const otp = req.body.code
+        const token = req.headers.authorization.split(' ')[1];
+        if(!token){
+        return next(new AppError('You\'re not logged in, please go to login page',401));
+        }
+        const decoded = await promisify(JWT.verify)(token,process.env.JWT_SECRET);
+    
+        //verify if the user of that token still exist
+        const user = await this.model.findById(decoded.id);
+        if(!user){
+        return next(new AppError("The user of that token no longer exist"),401)
+        }
+    console.log(user.phoneNumber , otp)
+        const verify = await TwilioService.verifyUser(user.phoneNumber , otp)
+        if(!verify){
+    
+      res.status(400).json({ message: "invalid otp code" });
+    
+        }
+    
+        user.phoneVerify = true
+        await user.save();
+        
+        res.status(200).json({ message: "Success: Ur Phone Verified" });
+    });
+
      isValidToken = async (req,res,next)=>{
         const token = req.headers.authorization;
     
@@ -95,7 +147,7 @@ class AuthBase {
             
             const decoded = JWT.verify(token, process.env.JWT_SECRET);
         
-            console.log(decoded)
+            //console.log(decoded)
             const expirationDate = new Date(decoded.exp * 1000); 
             const currentDate = new Date();
         
@@ -110,10 +162,12 @@ class AuthBase {
     }
 }
 
+
 class BorrowerAuth extends AuthBase {
     constructor() {
         super(Borrower); // Override the model
     }
+
     Register =  catchAsync(async (req, res, next) =>{
 
         const hash = await bcrypt.hash(req.body.password, salt);

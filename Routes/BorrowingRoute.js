@@ -9,6 +9,8 @@ const validationMW = require("../Middlewares/validateMW")
 const auth = require("../Middlewares/authenticationMW").auth
 const authorize = require("../Middlewares/authorizationMW").authorize
 const limitMW = require("../Middlewares/rateLimitMW")
+const BorrowerPHVerifyMW = require("./../Middlewares/PhoneVerifactionMW").borrowerPHVerifyMW.Verify
+const UserPHVerifyMW = require("./../Middlewares/PhoneVerifactionMW").userPHVerifyMW.Verify
 
 
 router.route("/operation/:id")  //bookID

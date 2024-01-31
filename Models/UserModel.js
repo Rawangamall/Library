@@ -1,7 +1,6 @@
 const { Schema, model ,mongoose} = require('mongoose');
 const AutoIncrement = require("mongoose-sequence")(mongoose);
 const bcrypt = require("bcrypt");
-const crypto = require("crypto");
 
 const validateEmail = function (email) {
   const regex = /^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/;
@@ -19,11 +18,11 @@ const baseSchema = new Schema({
     type: Boolean,
     default: true,
   },
-
+  phoneVerify:{ type : Boolean , default:false}
 }
 ,{ timestamps: true});
 
-//check on password in model not selected with the other data
+//check on password in 
 baseSchema.methods.correctPassword = async function (
   candidatePassword, userPassword) {
   return await bcrypt.compare(candidatePassword, userPassword);
