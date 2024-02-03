@@ -2,17 +2,32 @@ const mongoose = require('mongoose');
 const request = require('supertest');
 const app = require('../server'); 
 
-
+const QueryUtility = require('./../Controllers/QueryOperations');
 const { User } = require('./../Models/UserModel');
 jest.mock('./../Models/UserModel')
+jest.mock('./../src/QueryOperations');
 
-let server; 
+const mockQueryUtility = {
+  search: jest.fn((query, searchTerm, fields) => query),
+  sort: jest.fn((query, sortCriteria) => query),
+  limit: jest.fn((query, limit) => query),
+};
+
+QueryUtility.prototype = mockQueryUtility;
+
+
+let server;
+let port;
 
 beforeAll(() => {
   return new Promise((resolve) => {
-    server = app.listen(8081, resolve);
+    server = app.listen(0, () => {
+      port = server.address().port;
+      resolve();
+    });
   });
 });
+
 
 afterAll(async () => {
   await mongoose.connection.close();
@@ -89,16 +104,35 @@ describe('LoginController', () => {
 })
 
  describe('Authenticated API of get all users', () => {
-//   it('should return all users when authenticated', async () => {
-//     const validToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzA2MzI1OTM4LCJleHAiOjE3MDY5MzA3Mzh9.6X-ZqoS8A2VnRFbG94XfMxcREgkceB4r52aZJegIcWE';
-//     User.find = jest.fn().mockResolvedValue([ ]);
+  it('should return all users when authenticated', async () => {
+    const validToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzA2OTM0MTQ4LCJleHAiOjE3MDc1Mzg5NDh9.4KffiTPiYRnlp85MdZ4pZWUU3al_K6uEwTvgSBxCd24';
+    QueryUtility.prototype.search.mockImplementation((query, searchTerm, fields) => query);
+    QueryUtility.prototype.sort.mockImplementation((query, sortCriteria) => query);
+    QueryUtility.prototype.limit.mockImplementation((query, limit) => query);
 
-//     const response = await request(app)
-//       .get('/users')  
-//       .set('Authorization', `Bearer ${validToken}`);
+    const mockUserFind = jest.fn().mockResolvedValue([
+      {name:"Rawan"},
+      {name:"Amira"},
+    ]);
+    User.find.mockReturnValue({
+      or: mockUserFind,
+      sort: jest.fn().mockReturnValue({ limit: mockUserFind }),
+      limit: jest.fn().mockReturnValue({ exec: mockUserFind }),
+      exec: mockUserFind,
+    });
+    const response = await request(app)
+      .get('/users')  
+      .set('Authorization', `Bearer ${validToken}`);
 
-//     expect(response.status).toBe(200);
-//   });
+console.log(response.error)
+console.log(response.body)
+
+    expect(response.status).toBe(200);
+    expect(User.find).toHaveBeenCalled();
+    expect(QueryUtility.prototype.search).toHaveBeenCalled();
+    expect(QueryUtility.prototype.sort).toHaveBeenCalled();
+    expect(QueryUtility.prototype.limit).toHaveBeenCalled();
+  });
 
   it('should return an unauthorized response when not authenticated', async () => {
     //without a valid token in the header

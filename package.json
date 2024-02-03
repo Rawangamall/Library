@@ -7,7 +7,7 @@
     "start": "nodemon server",
     "tsc": "tsc",
     "tsc-version": "tsc --version",
-    "test": "jest --testTimeout=30000"
+    "test": "cross-env PORT=8081 jest"
   },
   "keywords": [],
   "author": "",
@@ -36,6 +36,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^20.11.6",
+    "cross-env": "^7.0.3",
     "supertest": "^6.3.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
