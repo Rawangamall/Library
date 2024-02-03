@@ -33,11 +33,12 @@ router.route("/dashboard/resetpassword")   //for dashboard users
       .patch(upload.none(),userAuth.resetpassword)  
 
 router.route("/user/PhoneVerify")
-      .get(auth , userAuth.SendVerifactionCode)  
+      .get(auth , userAuth.SendVerifactionCode) 
       .patch(auth,upload.none(),userAuth.phoneVerify)   
 
 router.route("/borrower/PhoneVerify")
       .get(auth , borrowerAuth.SendVerifactionCode) 
       .patch(auth,upload.none(),borrowerAuth.phoneVerify)   
+
 
 module.exports=router;
