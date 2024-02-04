@@ -46,14 +46,14 @@ class UserController {
     }
 
     const filteredUsersQuery = queryOperations.sort(queryOperations.limit(usersQuery, limit), sortField); //nested query
-    const users = await filteredUsersQuery.exec();
+    const users = await filteredUsersQuery.exec(); 
 
     if(users.length == 0){
         return res.status(200).json({ message: "There's no user" });
     }
 
     res.status(200).json(users);
-
+ 
   });
 
   static UpdateUser =CatchAsync(async (req,res,next)=>{

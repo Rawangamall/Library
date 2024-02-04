@@ -14,7 +14,7 @@ const PHVerifyMW = require("./../Middlewares/PhoneVerifactionMW").userPHVerifyMW
 
 router.route("/users")
       .post(limitMW.rateLimit,upload.none(),validationData.UserValidPOST,validationMW,userController.createUser)   //auth,authorize(['admin', 'manager']),
-      .get(auth,PHVerifyMW,authorize(['admin', 'manager']),limitMW.rateLimit,userController.getAllUsers)  
+      .get(auth,authorize(['admin', 'manager']),limitMW.rateLimit,userController.getAllUsers)  //PHVerifyMW,
 
 router.route("/user/:id")
       .get(limitMW.rateLimit,userController.getUserProfile)   //auth,authorize(['admin','employee', 'manager']),
