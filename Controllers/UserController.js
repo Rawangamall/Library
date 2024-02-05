@@ -15,9 +15,13 @@ class UserController {
       const newUser = new UserClass(firstName, lastName,phoneNumber,role, email,hash,parseFloat(salary));
       const user = new User(newUser);
 
-      await user.save(newUser);
- 
-      res.status(201).json(newUser);
+      const savedUser = await user.save(newUser);
+                 console.log(newUser)
+
+          console.log("saved:",savedUser)
+
+    res.status(201).json(savedUser);
+    console.log("after:",savedUser)
 
           }
   );
@@ -44,7 +48,6 @@ class UserController {
     if (searchTerm) {
       usersQuery = queryOperations.search(usersQuery, searchTerm , ['email', 'role', 'phoneNumber']);
     }
-
     const filteredUsersQuery = queryOperations.sort(queryOperations.limit(usersQuery, limit), sortField); //nested query
     const users = await filteredUsersQuery.exec(); 
 

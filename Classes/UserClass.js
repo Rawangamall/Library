@@ -1,4 +1,4 @@
-class User {
+class UserClass {
     constructor(firstName, lastName, phoneNumber,role,email,password,salary) {
       this.firstName = firstName;
       this.lastName = lastName;
@@ -12,5 +12,5 @@ class User {
     }  
   }
   
-  module.exports = User;
+  module.exports = UserClass;
   

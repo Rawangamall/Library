@@ -7,7 +7,7 @@
     "start": "nodemon server",
     "tsc": "tsc",
     "tsc-version": "tsc --version",
-    "test": "cross-env PORT=8081 jest"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
