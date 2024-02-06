@@ -16,12 +16,7 @@ class UserController {
       const user = new User(newUser);
 
       const savedUser = await user.save(newUser);
-                 console.log(newUser)
-
-          console.log("saved:",savedUser)
-
-    res.status(201).json(savedUser);
-    console.log("after:",savedUser)
+         res.status(201).json(savedUser);
 
           }
   );

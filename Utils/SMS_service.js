@@ -1,4 +1,5 @@
-const twilio = require('twilio');
+console.log('AccountSID:', process.env.AccountSID);
+console.log('AccountToken:', process.env.AccountToken);
 
 const accountSid =  process.env.AccountSID;
 const authToken = process.env.AccountToken;
@@ -25,7 +26,7 @@ exports.verifyUser = async function verifyUserOTP(phoneNumber, otpCode) {
         const verificationCheck = await client.verify.v2
             .services(verifySid)
             .verificationChecks.create({ to: "+201022887277", code: otpCode });  //to phoneNumber
-       // console.log(verificationCheck.status); 
+        console.log(verificationCheck.status,"sms"); 
         return verificationCheck.status === 'approved'; 
     } catch (error) {
         console.error(`Error verifying OTP: ${error}`);

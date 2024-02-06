@@ -23,19 +23,18 @@ class AuthBase {
         return next(new AppError(` Missing paramters for login`, 404));
         }
     const user = await this.model.findOne({email:email}).select("+password");
-       // console.log((await user.correctPassword(password, user.password)) , "28 in login controller")
 
     if(!user || !(await user.correctPassword(password, user.password))){
-        return next(new AppError(`Incorrect email or password`, 401));
-    }
-    
+         return next(new AppError(`Incorrect email or password`, 401));
+           }       
+        
     if(user.active == false){
         return next(new AppError(`You're not allowed to login!, U're not active now`, 401));
     }
-    
+       
     
     const token = JWT.sign({id:user._id , role:user.role},process.env.JWT_SECRET,{expiresIn:process.env.JWT_EXPIRE_IN});
-    
+
     res.status(200).json({
         status:"success" , 
         token
@@ -51,10 +50,7 @@ class AuthBase {
         if (isSMSSent) {
             return res.status(200).json({ message: "Success: SMS sent for password reset" });
         } else {
-            user.code = undefined;
-            user.passwordResetExpires = undefined;
-            await user.save({ validateBeforeSave: false });
-            return next(new AppError("Error sending SMS. Please try again later!", 500));
+            return next(new AppError("Error sending SMS. Please try again later!", 400));
         }
     
     });
@@ -70,7 +66,7 @@ class AuthBase {
         if (!user) {
             return next(new AppError(`User with that phone number not found`, 401));
         }
-    
+
         const verify = await TwilioService.verifyUser(phone , otp)
         if(!verify){
         return next(new AppError("invalid otp code"),400);
@@ -79,10 +75,11 @@ class AuthBase {
         if(!newPassword || (req.body.confirmPassword) != newPassword) {
             return next(new AppError("Enter valid password and its match"),400);
         }else{
-    
         user.password = bcrypt.hashSync(newPassword ,salt) 
+        console.log(user.password)
+
         await user.save();
-    
+    console.log("after")
         }
     
     res.status(200).json({message:"success"});

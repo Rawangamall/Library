@@ -2,7 +2,6 @@ const UserController = require('./../Controllers/UserController');
 const { User } = require('./../Models/UserModel');
 const UserClass = require('./../Classes/UserClass');
 const bcrypt = require('bcrypt');
-const { describe, mock } = require('node:test');
 
 jest.mock('bcrypt');
 jest.mock('./../Classes/UserClass');
@@ -57,7 +56,7 @@ describe('UserController - createUser', () => {
       'hashedPassword',
       4000
     );
-    expect(User.prototype.save).toHaveBeenCalledWith(userClassInstanceMock);  
+   await expect(User.prototype.save).toHaveBeenCalledWith(userClassInstanceMock);  
     expect(res.status).toHaveBeenCalledWith(201);   //not called issue
 
   });
