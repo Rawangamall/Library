@@ -75,11 +75,9 @@ class AuthBase {
         if(!newPassword || (req.body.confirmPassword) != newPassword) {
             return next(new AppError("Enter valid password and its match"),400);
         }else{
+            
         user.password = bcrypt.hashSync(newPassword ,salt) 
-        console.log(user.password)
-
         await user.save();
-    console.log("after")
         }
     
     res.status(200).json({message:"success"});

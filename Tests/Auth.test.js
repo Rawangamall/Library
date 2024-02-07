@@ -127,7 +127,7 @@ it('shouldbe able to login', async () => {
 
   
   describe('Reset password',()=>{
-    it('should be send the otp code when user exist',async()=>{
+    it('should be reset with new password',async()=>{
         const req = {
          body:{
            code:'708527',
@@ -150,14 +150,23 @@ it('shouldbe able to login', async () => {
          password:'oldpassword'
        })
 
+
        bcrypt.hashSync.mockReturnValue('hashedPassword');
-       jest.spyOn(User.prototype, 'save').mockResolvedValue();
+       const user = {
+        email: 'rawan@test.com',
+        phoneNumber: '1234567890',
+        password: 'hashedPassword',
+        save: jest.fn().mockResolvedValue()
+      };
+      
+      jest.spyOn(User, 'findOne').mockResolvedValue(user);
+       jest.spyOn(user, 'save').mockResolvedValue();
 
        await LoginController.userAuth.resetpassword(req,res,next);
 
        expect(User.findOne).toHaveBeenCalledWith( {phoneNumber:req.body.phone });
    await  expect(TwilioService.verifyUser).toHaveReturnedWith('approved');
-   await expect(User.prototype.save).toHaveBeenCalledTimes(1);  
+   await expect(user.save).toHaveBeenCalledTimes(1);  
        expect(res.status).toHaveBeenCalledWith(200);
     })    
  })
