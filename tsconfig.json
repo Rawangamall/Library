@@ -6,11 +6,14 @@
       "outDir": "./Controllers",      // compiled JavaScript
       "rootDir": "./src",        //input ts files
       "strict": true,
+      "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
       "paths": {
         "@models/*": ["./Models/*"]
       }
     },
-    "include": ["src/**/*.ts"],
+    "include": ["src/**/*.ts", "Tests/**/*.ts", "Tests/BorrowingOperation.test.js", "src/Tests/BorrowingOperation.test.js"],
     "exclude": ["node_modules"]
   }
 

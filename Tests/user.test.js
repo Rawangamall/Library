@@ -2,15 +2,17 @@ const UserController = require('./../Controllers/UserController');
 const { User } = require('./../Models/UserModel');
 const UserClass = require('./../Classes/UserClass');
 const bcrypt = require('bcrypt');
+const { describe } = require('node:test');
 
 jest.mock('bcrypt');
 jest.mock('./../Classes/UserClass');
 jest.mock('./../Models/UserModel');
 
-describe('UserController - createUser', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
+describe('UserController - createUser', () => {
 
   it('should create a new user', async () => {
     const req = {
@@ -188,4 +190,31 @@ expect(res.status).toHaveBeenCalledWith(200)
     
     expect(res.status).toHaveBeenCalledWith(400)
        });
+
  });
+
+ describe('Update user',()=>{
+  it("should update user", async() => {
+
+    const req ={
+      params:{
+        _id:4
+      },
+      body:{
+        firstName:'new name'
+      }
+    }
+
+    const res={
+      status:jest.fn().mockReturnThis(),
+      json:jest.fn()
+    }
+
+    jest.spyOn(User,"findByIdAndUpdate").mockResolvedValue(req.params._id)
+
+    await UserController.UpdateUser(req,res)
+    expect(User.findByIdAndUpdate).toHaveBeenCalledTimes(1)
+    expect(res.status).toHaveBeenCalledWith(200)
+})
+
+ })

@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import * as JWT from 'jsonwebtoken';
-import moment = require('moment');
+import moment from 'moment';
 import { promisify } from 'util';
 
-const BookBorrowing = require('./../Models/BorrowingModel');
-const Book = require('./../Models/BookModel');
+const BookBorrowing = require('../../Models/BorrowingModel');
+const Book = require('../../Models/BookModel');
 
-const CatchAsync = require('./../Utils/CatchAsync');
+const CatchAsync = require('../../Utils/CatchAsync');
 
 
 class BorrowingOperations {
@@ -18,10 +18,11 @@ class BorrowingOperations {
     if(!token){
         return res.status(401).json('You\'re not logged in, please go to login page');
      }
-    
+   
      type VerifyCallback = (token: string, secret: string) => Promise<any>;
-
      const decoded = await (promisify(JWT.verify) as VerifyCallback)(token, process.env.JWT_SECRET as string);
+     console.log(decoded,"decoded")
+
      const userId = decoded.id; 
     const { dueDate  } = req.body;
 
@@ -37,8 +38,8 @@ class BorrowingOperations {
 
     let borrowingResult;
     if(book.bookType == "free"){
-     borrowingResult = new BookBorrowing({borrower:userId, book:bookId, dueDate:dueDate});
-     book.availableQuantity -=1;
+     borrowingResult =await BookBorrowing.create({borrower:userId, book:bookId, dueDate:dueDate});
+
     }else if(book.bookType == "rental"){
 
       //calculate the rent
@@ -50,10 +51,13 @@ class BorrowingOperations {
   
       req.body.rentAmount = rentAmount; 
 
-     borrowingResult = new BookBorrowing({borrower:userId, book:bookId, dueDate:dueDate , rentalFee:rentAmount });
+     borrowingResult = await BookBorrowing.create({borrower:userId, book:bookId, dueDate:dueDate , rentalFee:rentAmount });
+
     }
+    book.availableQuantity -=1;
 
     await borrowingResult.save();
+    await book.save();
 
     res.status(201).json({data: borrowingResult });
   });
@@ -66,10 +70,12 @@ class BorrowingOperations {
     if(!token){
         return res.status(401).json('You\'re not logged in, please go to login page');
      }
-    
+     console.log(token,"token")
+
      type VerifyCallback = (token: string, secret: string) => Promise<any>;
 
      const decoded = await (promisify(JWT.verify) as VerifyCallback)(token, process.env.JWT_SECRET as string);
+     console.log(decoded,"de")
      const operation = await BookBorrowing.findOne({book:bookId,borrower:decoded.id})
      const book = await Book.findById(bookId)
 

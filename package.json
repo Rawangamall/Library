@@ -7,13 +7,10 @@
     "start": "nodemon server",
     "tsc": "tsc",
     "tsc-version": "tsc --version",
-    "test": "jest"
+    "test": "jest --config jest.config.js",
+    "test:ts": "jest --config jest.config.ts"
   },
-  "jest": {
-    "setupFiles": ["./setupTests.js"],
-    "testEnvironment": "node"
-  }
-  ,
+
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -39,11 +36,13 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
     "@types/jsonwebtoken": "^9.0.5",
     "@types/node": "^20.11.6",
     "dotenv": "^16.4.1",
     "dotenv-flow": "^4.1.0",
     "supertest": "^6.3.4",
+    "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
