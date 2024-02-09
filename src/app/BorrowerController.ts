@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import * as bcrypt from 'bcrypt';
 
-const {Borrower} = require('./../Models/UserModel');
-const Book = require('./../Models/BookModel');
-const Operations = require('./../Models/BorrowingModel');
-const CatchAsync = require('./../Utils/CatchAsync');
+const {Borrower} = require('./../../Models/UserModel');
+const Book = require('./../../Models/BookModel');
+const Operations = require('./../../Models/BorrowingModel');
+const CatchAsync = require('./../../Utils/CatchAsync');
 
 import QueryOperation from './QueryOperations';
 import { promisify } from 'util';
@@ -81,7 +81,8 @@ class BorrowerController {
     }
   
     const operations = await Operations.find({ borrower: borrowerId, returned: false });
-  
+    //console.log(operations , operations.length)
+
     if (operations.length > 0) {
       const borrowedBooks = await Book.find({ _id: { $in: operations.map((operation:any) => operation.book) } })
   
@@ -91,7 +92,6 @@ class BorrowerController {
         borrowedBooks:borrowedBooks
       });
     }
-
     const borrower = await Borrower.findByIdAndDelete(borrowerId);
     res.status(200).json(borrower);
   });

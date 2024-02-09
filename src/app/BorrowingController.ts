@@ -21,7 +21,6 @@ class BorrowingOperations {
    
      type VerifyCallback = (token: string, secret: string) => Promise<any>;
      const decoded = await (promisify(JWT.verify) as VerifyCallback)(token, process.env.JWT_SECRET as string);
-     console.log(decoded,"decoded")
 
      const userId = decoded.id; 
     const { dueDate  } = req.body;
@@ -75,7 +74,6 @@ class BorrowingOperations {
      type VerifyCallback = (token: string, secret: string) => Promise<any>;
 
      const decoded = await (promisify(JWT.verify) as VerifyCallback)(token, process.env.JWT_SECRET as string);
-     console.log(decoded,"de")
      const operation = await BookBorrowing.findOne({book:bookId,borrower:decoded.id})
      const book = await Book.findById(bookId)
 
