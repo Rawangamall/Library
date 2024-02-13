@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import * as JWT from 'jsonwebtoken';
 import moment from 'moment';
 import { promisify } from 'util';
+import QueryBuilder from './QueryBuilder';
 
 const BookBorrowing = require('../../Models/BorrowingModel');
 const Book = require('../../Models/BookModel');
@@ -90,6 +91,23 @@ class BorrowingOperations {
      res.status(200).json({message:"The book is returned"})
   })
 
+  static OperationList = CatchAsync(async (req:Request,res:Response,next:NextFunction)=>{
+    const filter = req.query.filter as unknown as boolean;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10 as number;
+    const sort = req.query.sort as string;
+    
+    const operationsQuery = new QueryBuilder(BookBorrowing) 
+    .limit(limit)
+    .sort(sort)
+    .filterReturned(filter)
+
+    const operations = await operationsQuery.build();
+    if(operations.length === 0){
+        return res.status(404).json({message:'There\'s no operation'});
+    }
+    res.status(200).json(operations)
+  })
 }
+
 
 export default BorrowingOperations;

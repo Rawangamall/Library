@@ -18,4 +18,7 @@ router.route("/operation/:id")  //bookID
       .get(auth,authorize(['admin', 'manager']),limitMW.rateLimit)  
       .patch(auth,authorize(['borrower']),limitMW.rateLimit,BorrowingOperations.returnBook)
 
+router.route("/operations")
+       .get(auth,authorize(['admin', 'manager']),validationData.BorrowingValidGet,validationMW,BorrowingOperations.OperationList)
+
 module.exports=router;

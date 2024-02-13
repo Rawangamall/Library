@@ -1,4 +1,4 @@
-const { body,param} = require("express-validator");
+const { body,param , query} = require("express-validator");
 const moment = require('moment');
 
 exports.BorrowingValidPOST = [
@@ -13,5 +13,9 @@ exports.BorrowingValidPOST = [
     
         return true;
       }),
+];
+
+exports.BorrowingValidGet = [
+    query('filter').isBoolean().withMessage('choose the returned or non returned filter'),
 ];
 
