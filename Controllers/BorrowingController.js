@@ -40,6 +40,7 @@ const JWT = __importStar(require("jsonwebtoken"));
 const moment_1 = __importDefault(require("moment"));
 const util_1 = require("util");
 const QueryBuilder_1 = __importDefault(require("./QueryBuilder"));
+const BookObservable_1 = __importDefault(require("./BookObservable"));
 const BookBorrowing = require('../Models/BorrowingModel');
 const Book = require('../Models/BookModel');
 const CatchAsync = require('../Utils/CatchAsync');
@@ -80,6 +81,9 @@ BorrowingOperations.borrowBook = CatchAsync((req, res, next) => __awaiter(void 0
     book.availableQuantity -= 1;
     yield borrowingResult.save();
     yield book.save();
+    if (book.availableQuantity == 0) {
+        BookObservable_1.default.notifyObservers(bookId, false);
+    }
     res.status(201).json({ data: borrowingResult });
 }));
 BorrowingOperations.returnBook = CatchAsync((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -89,9 +93,9 @@ BorrowingOperations.returnBook = CatchAsync((req, res, next) => __awaiter(void 0
     if (!token) {
         return res.status(401).json('You\'re not logged in, please go to login page');
     }
-    console.log(token, "token");
+
     const decoded = yield (0, util_1.promisify)(JWT.verify)(token, process.env.JWT_SECRET);
-    const operation = yield BookBorrowing.findOne({ book: bookId, borrower: decoded.id });
+    const operation = yield BookBorrowing.findOne({ book: bookId, borrower: decoded.id ,returned:false});
     const book = yield Book.findById(bookId);
     if (!operation || operation.returned) {
         return res.status(400).json({ message: "You didn't borrow this book or already returned :)" });
@@ -100,12 +104,13 @@ BorrowingOperations.returnBook = CatchAsync((req, res, next) => __awaiter(void 0
     book.availableQuantity += 1;
     yield operation.save();
     yield book.save();
+    BookObservable_1.default.notifyObservers(bookId, true);
     res.status(200).json({ message: "The book is returned" });
 }));
 BorrowingOperations.OperationList = CatchAsync((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const filter = req.query.filter;
     const limit = req.query.limit ? parseInt(req.query.limit) : 10;
-    const sort = req.query.sort || '';
+    const sort = req.query.sort;
     const operationsQuery = new QueryBuilder_1.default(BookBorrowing)
         .limit(limit)
         .sort(sort)

@@ -1,5 +1,4 @@
 const JWT= require("jsonwebtoken");
-const { promisify } = require("util")
 
 const {User} = require("./../Models/UserModel")
 const {Borrower} = require("./../Models/UserModel")
@@ -17,7 +16,11 @@ exports.auth = catchAsync(async (req,res,next)=>{
     return next(new AppError('You\'re not logged in, please go to login page',401));
  }
 
-const decoded = await promisify(JWT.verify)(token,process.env.JWT_SECRET);
+ const decoded = JWT.decode(token);
+
+ if (decoded.exp <= Date.now() / 1000) {
+   return next(new AppError('Your token has expired. Please log in again.', 401));
+ }
 
 //verify if the user of that token still exist
 const user = await User.findById(decoded.id);

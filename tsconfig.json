@@ -13,7 +13,7 @@
         "@models/*": ["./Models/*"]
       }
     },
-    "include": ["src/**/*.ts", "Tests/**/*.ts", "Tests/BorrowingOperation.test.js", "src/Tests/BorrowingOperation.test.js"],
+    "include": ["src/**/*.ts", "Tests/**/*.ts"],
     "exclude": ["node_modules"]
   }
 

@@ -7,6 +7,8 @@ const Operations = require('./../../Models/BorrowingModel');
 const CatchAsync = require('./../../Utils/CatchAsync');
 
 import QueryOperation from './QueryOperations';
+import ObserverManager from './BookObservable';
+
 import { promisify } from 'util';
 import * as JWT from 'jsonwebtoken';
 
@@ -120,9 +122,37 @@ class BorrowerController {
   }
 
     borrower.wishList.push(bookId);
-    await borrower.save()
+    await borrower.save();
+
+    ObserverManager.registerObserver(bookId,borrower)
     
     res.status(200).json({message:'Book added to ur wishlist :)'});
+  })
+
+  static removeWishBook = CatchAsync(async(req:Request,res:Response,next:NextFunction)=>{
+    const bookId = req.params.id;
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if(!token){
+        return res.status(401).json('You\'re not logged in, please go to login page');
+     }
+    
+     type VerifyCallback = (token: string, secret: string) => Promise<any>;
+
+     const decoded = await (promisify(JWT.verify) as VerifyCallback)(token, process.env.JWT_SECRET as string);
+     const userId = decoded.id; 
+
+    const borrower = await Borrower.findById(userId);
+    if (borrower.wishList.length == 0 || !(borrower.wishList.includes(bookId))) {
+      return res.status(400).json({message:'Book isn\'t in ur wishlist'});      
+  }
+
+  borrower.wishList =  borrower.wishList.filter((book: any) => book !== bookId);
+    await borrower.save();
+
+    ObserverManager.removeObserver(bookId,borrower)
+    
+    res.status(200).json({message:'Book removed from ur wishlist :)'});
   })
 }
 

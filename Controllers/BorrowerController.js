@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,16 +31,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-const bcrypt = require("bcrypt");
-const { Borrower } = require('./../Models/UserModel');
-const Book = require('./../Models/BookModel');
-const Operations = require('./../Models/BorrowingModel');
-const CatchAsync = require('./../Utils/CatchAsync');
-const QueryOperations_1 = require("./QueryOperations");
+const bcrypt = __importStar(require("bcrypt"));
+const { Borrower } = require('../Models/UserModel');
+const Book = require('../Models/BookModel');
+const Operations = require('../Models/BorrowingModel');
+const CatchAsync = require('../Utils/CatchAsync');
+const QueryOperations_1 = __importDefault(require("./QueryOperations"));
+const BookObservable_1 = __importDefault(require("./BookObservable"));
 const util_1 = require("util");
-const JWT = require("jsonwebtoken");
+const JWT = __importStar(require("jsonwebtoken"));
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
 class BorrowerController {
@@ -71,6 +98,7 @@ BorrowerController.deleteBorrower = CatchAsync((req, res, next) => __awaiter(voi
         return res.status(404).json({ error: "borrower not found" });
     }
     const operations = yield Operations.find({ borrower: borrowerId, returned: false });
+    //console.log(operations , operations.length)
     if (operations.length > 0) {
         const borrowedBooks = yield Book.find({ _id: { $in: operations.map((operation) => operation.book) } });
         return res.status(400).json({
@@ -101,6 +129,7 @@ BorrowerController.addWishBook = CatchAsync((req, res, next) => __awaiter(void 0
     }
     borrower.wishList.push(bookId);
     yield borrower.save();
+    BookObservable_1.default.registerObserver(bookId, borrower);
     res.status(200).json({ message: 'Book added to ur wishlist :)' });
 }));
 exports.default = BorrowerController;
