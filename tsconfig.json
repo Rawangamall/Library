@@ -3,17 +3,13 @@
       "target": "ES6",
       "module": "CommonJS",
       "moduleResolution": "Node",
-      "outDir": "./Controllers",      // compiled JavaScript
+      "outDir": "./dist",      // compiled JavaScript
       "rootDir": "./src",        //input ts files
       "strict": true,
       "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-      "paths": {
-        "@models/*": ["./Models/*"]
-      }
+    "forceConsistentCasingInFileNames": true
     },
     "include": ["src/**/*.ts", "Tests/**/*.ts"],
-    "exclude": ["node_modules"]
   }
 

@@ -8,7 +8,7 @@ const config: Config.InitialOptions = {
   roots: ['<rootDir>/src/Tests'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.[jt]sx?$',
-  setupFiles: ["./setupTests.js"] 
+  setupFiles: ["./setupTests.ts"] 
 };
 
 export default config;
