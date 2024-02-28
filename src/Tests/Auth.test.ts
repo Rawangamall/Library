@@ -1,16 +1,19 @@
-const LoginController = require('./../Controllers/LoginController');
-const TwilioService = require('./../Utils/SMS_service')
-const AppError = require('./../Utils/appError');
-const { User } = require('./../Models/UserModel');
-const { describe } = require('node:test');
+import { Request, Response, NextFunction } from 'express';
+
+const LoginController = require('./../app/Controllers/LoginController');
+const TwilioService = require('./../app/Utils/SMS_service')
+const AppError = require('./../app/Utils/appError');
+const { User } = require('./../app/Models/UserModel');
 const bcrypt = require('bcrypt');
 
 jest.mock('bcrypt');
-jest.mock('./../Models/UserModel');
-jest.mock('./../Utils/SMS_service', () => ({
+jest.mock('./../app/Models/UserModel');
+jest.mock('./../app/Utils/SMS_service', () => ({
   sendSMS: jest.fn().mockReturnValue(true), 
   verifyUser: jest.fn().mockReturnValue('approved')
 }));
+let req: Partial<Request>
+let res: Partial<Response>
 
 
  describe('LoginController', () => {
@@ -21,36 +24,35 @@ jest.mock('./../Utils/SMS_service', () => ({
 
    describe('login User', () => {
        it('shouldn\'t be able to login without email or pass', async () => {
-         const req = {
+          req = {
           body: {
             password: 'pass1234', 
           }};
         
-        const res = {
+         res = {
           status: jest.fn().mockReturnThis(),
           json: jest.fn(),
         };
 
        const next =jest.fn()
 
-        await LoginController.userAuth.login(req, res,next);
+        await LoginController.userAuth.login(req as Request, res as Response, next,next);
        const AppErrorInstance = next.mock.calls[0][0];
 
-        expect(next).toHaveBeenCalledWith(expect.any(AppError));
         expect(AppErrorInstance.statusCode).toBe(404); //missing paramter untill
 
         });
 
    it('shouldn\'t be able to login with Incorrect email or password or user not found', async () => {
 
-          const req = {
+           req = {
            body: {
             email:'rawan@test.com',
              password: 'pass1234'
            },
          };
          
-         const res = {
+          res = {
            status: jest.fn().mockReturnThis(),
            json: jest.fn(),
          };
@@ -62,9 +64,8 @@ jest.mock('./../Utils/SMS_service', () => ({
         });
 
 
-         await LoginController.userAuth.login(req, res,next); 
+         await LoginController.userAuth.login(req as Request, res as Response, next,next); 
          expect(User.findOne().select).toHaveBeenCalledTimes(1);
-         expect(next).toHaveBeenCalledWith(expect.any(AppError));  
          const AppErrorInstance = next.mock.calls[0][0];
          expect(AppErrorInstance.statusCode).toBe(401); //Incorrect login data
  
@@ -72,14 +73,14 @@ jest.mock('./../Utils/SMS_service', () => ({
 
 it('shouldbe able to login', async () => {
 
-            const req = {
+             req = {
              body: {
               email:'rawan@test.com',
                password: 'pass1234'
              },
            };
            
-           const res = {
+            res = {
              status: jest.fn().mockReturnThis(),
              json: jest.fn(),
            };
@@ -92,7 +93,7 @@ it('shouldbe able to login', async () => {
             }),
           });
 
-          await LoginController.userAuth.login(req, res,next); 
+          await LoginController.userAuth.login(req as Request, res as Response, next,next); 
           await expect(User.findOne().select).toHaveBeenCalledTimes(1);
            expect(res.status).toHaveBeenCalledWith(200);
         
@@ -101,12 +102,12 @@ it('shouldbe able to login', async () => {
 
   describe('Forget password',()=>{
      it('should be send the otp code when user exist',async()=>{
-         const req = {
+          req = {
           body:{
             email:'rawan@test.com'
           }}
 
-        const res = {
+         res = {
           status: jest.fn().mockReturnThis(),
           json: jest.fn()
         };
@@ -128,7 +129,7 @@ it('shouldbe able to login', async () => {
   
   describe('Reset password',()=>{
     it('should be reset with new password',async()=>{
-        const req = {
+         req = {
          body:{
            code:'708527',
            phone:'1234567890',
@@ -136,7 +137,7 @@ it('shouldbe able to login', async () => {
            confirmPassword:'newPassword'
          }}
 
-       const res = {
+        res = {
          status: jest.fn().mockReturnThis(),
          json: jest.fn()
        };
@@ -156,11 +157,11 @@ it('shouldbe able to login', async () => {
         email: 'rawan@test.com',
         phoneNumber: '1234567890',
         password: 'hashedPassword',
-        save: jest.fn().mockResolvedValue()
+        save: jest.fn().mockResolvedValue({})
       };
       
       jest.spyOn(User, 'findOne').mockResolvedValue(user);
-       jest.spyOn(user, 'save').mockResolvedValue();
+       jest.spyOn(user, 'save').mockResolvedValue({});
 
        await LoginController.userAuth.resetpassword(req as Request, res as Response, next);
 

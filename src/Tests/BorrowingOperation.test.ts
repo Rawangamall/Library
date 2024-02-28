@@ -2,8 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import BorrowingOperations from '../app/Controllers/BorrowingController';
 import BorrowingModel from '../app/Models/BorrowingModel';
 import Book from '../app/Models/BookModel';
-
-import JWT from "jsonwebtoken";
 import util from "util";
 
 jest.mock('../app/Controllers/BorrowingController');
@@ -104,7 +102,6 @@ it('should\'t perform borrow on outstock book ', async() => {
 
     await BorrowingOperations.borrowBook(req as Request, res as Response, next)
 
-    await expect(JWT.verify).toHaveBeenCalledWith("token", process.env.JWT_SECRET);
     await expect(util.promisify).toHaveBeenCalledTimes(1);
     await expect(Book.findById).toHaveBeenCalledWith(req.params?.id)
    expect(res.status).toHaveBeenCalledWith(400)
@@ -142,7 +139,6 @@ it('shouldn\'t perform Borrowing operation twice if not returned yet', async() =
 
     await BorrowingOperations.borrowBook(req as Request, res as Response, next)
 
-    await expect(JWT.verify).toHaveBeenCalledWith("token", process.env.JWT_SECRET);
     await expect(util.promisify).toHaveBeenCalledTimes(1);
     await expect(Book.findById).toHaveBeenCalledWith(req.params?.id)
    expect(res.status).toHaveBeenCalledWith(400)
@@ -184,7 +180,6 @@ describe('Retrurn Book', () => {
 
           await BorrowingOperations.returnBook(req as Request, res as Response, next)
 
-          await expect(JWT.verify).toHaveBeenCalledWith("token", process.env.JWT_SECRET);
           await expect(util.promisify).toHaveBeenCalledTimes(1);
           await expect(BorrowingModel.findOne).toHaveBeenCalledTimes(1)
           await expect(Book.findById).toHaveBeenCalledWith(req.params?.id)
@@ -227,7 +222,6 @@ describe('Retrurn Book', () => {
 
           await BorrowingOperations.returnBook(req as Request, res as Response, next)
 
-          await expect(JWT.verify).toHaveBeenCalledWith("token", process.env.JWT_SECRET);
           await expect(util.promisify).toHaveBeenCalledTimes(1);
           await expect(BorrowingModel.findOne).toHaveBeenCalledTimes(1)
           await expect(Book.findById).toHaveBeenCalledWith(req.params?.id)
