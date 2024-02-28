@@ -1,4 +1,4 @@
-import QueryUtility from './../app/QueryOperations';
+import QueryUtility from './../app/Controllers/QueryOperations';
 import { Document, FilterQuery, Query } from 'mongoose';
 
 interface MockDocument extends Document {

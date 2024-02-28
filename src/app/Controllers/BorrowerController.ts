@@ -1,4 +1,3 @@
-import { Request, Response, NextFunction } from 'express';
 import * as bcrypt from 'bcrypt';
 
 import { Borrower } from './../Models/UserModel';

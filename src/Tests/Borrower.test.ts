@@ -1,62 +1,60 @@
 import { Request, Response, NextFunction } from 'express';
-import BorrowerController from './../app/BorrowerController';
-import JWT from "jsonwebtoken";
+import BorrowerController from './../app/Controllers/BorrowerController';
 import util from "util";
 
-const {Borrower} = require('./../../Models/UserModel');
-const Book = require('./../../Models/BookModel');
-const Operations = require('./../../Models/BorrowingModel');
-const CatchAsync = require('./../../Utils/CatchAsync');
+import { Borrower } from './../app/Models/UserModel';
+import Book from './../app/Models/BookModel';
+import Operations from './../app/Models/BorrowingModel';
 
 jest.mock('jsonwebtoken', () => ({
     __esModule: true,
     verify: jest.fn().mockResolvedValue({ id: 4 })
   }));
 jest.mock('util');
+
 beforeEach(() => {
     jest.clearAllMocks();
 });
 
+let req: Partial<Request>
+let res: Partial<Response>
 
-describe("BorrowerController",()=>{
-    describe("show Borrower profile",()=>{
-        it("should show borrower profile within id",async ()=>{
-            const req={
-                params:{
-                    id:4
-                }
-            };
-            const res={
-                status:jest.fn().mockReturnThis(),
-                json:jest.fn()
-            };
-            const next=jest.fn();
-            const mockBorrower={
-                id:4,
-                email:'rawan@test.com'
-            };
+describe('BorrowerController', () => {
+    
+    describe('show Borrower profile', () => {
         
-           jest.spyOn(Borrower,'findById').mockResolvedValue(mockBorrower);
-            await BorrowerController.getBorrowerProfile(req,res,next);
-
-           await expect(Borrower.findById).toHaveBeenCalledTimes(1)
-            expect(res.status).toHaveBeenCalledWith(200);
-            expect(res.json).toHaveBeenCalledWith(mockBorrower);
-        })
+      it('should show borrower profile within id', async () => {
+         req= { params: { id: '4' } };
+         res= { json: jest.fn(), status: jest.fn().mockReturnThis() };
+        const next: NextFunction = jest.fn();
+  
+        const mockBorrower = {
+          id: 4,
+          email: 'rawan@test.com'
+        };
+  
+        jest.spyOn(Borrower, 'findById').mockResolvedValue(mockBorrower);
+  
+        await BorrowerController.getBorrowerProfile(req as Request, res as Response, next);
+  
+        await expect(Borrower.findById).toHaveBeenCalledTimes(1);
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith(mockBorrower);
+      });
         it("should show borrower profile within id",async ()=>{
-            const req={
+             req={
                 params:{
-                    id:4
+                    id:'4'
                 }
             };
-            const res={
+             res={
                 status:jest.fn().mockReturnThis(),
                 json:jest.fn()
             };
             const next=jest.fn();
 
            jest.spyOn(Borrower,'findById').mockResolvedValue(null);
-            await BorrowerController.getBorrowerProfile(req,res,next);
+            await BorrowerController.getBorrowerProfile(req as Request, res as Response, next);
 
             await expect(Borrower.findById).toHaveBeenCalledTimes(1)
             expect(res.status).toHaveBeenCalledWith(400);
@@ -66,14 +64,14 @@ describe("BorrowerController",()=>{
 
     describe("get all Borrowers",()=>{
         it("should show borrowers ",async ()=>{
-            const req={
+             req={
                 query:{
                     searchTerm:"test",
                      sortField:"CreatedAt",
-                      limit:10
+                      limit:'10'
                 }
             };
-            const res={
+             res={
                 status:jest.fn().mockReturnThis(),
                 json:jest.fn()
             };
@@ -91,14 +89,14 @@ describe("BorrowerController",()=>{
                 exec: jest.fn().mockResolvedValue(mockBorrowers)
               });
 
-            await BorrowerController.getAllBorrowers(req,res,next);
+            await BorrowerController.getAllBorrowers(req as Request, res as Response, next);
 
             expect(Borrower.find).toHaveBeenCalledTimes(1);
-            expect(Borrower.find().limit).toHaveBeenCalledWith(req.query.limit);
-            expect(Borrower.find().sort).toHaveBeenCalledWith(req.query.sortField); 
+            expect(Borrower.find().limit).toHaveBeenCalledWith(parseInt((req.query?.limit || '5').toString()));
+            expect(Borrower.find().sort).toHaveBeenCalledWith(req.query?.sortField); 
             expect(Borrower.find().or).toHaveBeenCalledWith(
-              [{"email": {"$options": "i", "$regex": req.query.searchTerm}},
-             {"phoneNumber": {"$options": "i", "$regex": req.query.searchTerm}}]); 
+              [{"email": {"$options": "i", "$regex": req.query?.searchTerm}},
+             {"phoneNumber": {"$options": "i", "$regex": req.query?.searchTerm}}]); 
             
             expect(res.status).toHaveBeenCalledWith(200);
             expect(res.json).toHaveBeenCalledWith(mockBorrowers)
@@ -107,22 +105,22 @@ describe("BorrowerController",()=>{
 
     describe("update Borrower",()=>{
         it("should update Borrower ",async ()=>{
-            const req={
+             req={
                 params:{
-                    id:4
+                    id:'4'
                 },
                 body:{
                   firstName:'new name'
                 }
             };
-            const res={
+             res={
                 status:jest.fn().mockReturnThis(),
                 json:jest.fn()
             };
             const next=jest.fn();
-            jest.spyOn(Borrower,"findByIdAndUpdate").mockResolvedValue(req.params.id)
+            jest.spyOn(Borrower,"findByIdAndUpdate").mockResolvedValue(req.params?.id)
 
-            await BorrowerController.updateBorrower(req,res,next);
+            await BorrowerController.updateBorrower(req as Request, res as Response, next);
             expect(Borrower.findByIdAndUpdate).toHaveBeenCalledTimes(1)
             expect(res.status).toHaveBeenCalledWith(200)
         })
@@ -130,22 +128,22 @@ describe("BorrowerController",()=>{
 
     describe("delete Borrower",()=>{
         it("should delete Borrower since he returned all books ",async ()=>{
-            const req={
+             req={
                 params:{
-                    id:4
+                    id:'4'
                 }
             };
-            const res={
+             res={
                 status:jest.fn().mockReturnThis(),
                 json:jest.fn()
             };
             const next=jest.fn();
 
-            jest.spyOn(Borrower,'findById').mockResolvedValue(req.params.id)
+            jest.spyOn(Borrower,'findById').mockResolvedValue(req.params?.id)
             jest.spyOn(Operations,'find').mockResolvedValue([])
-            jest.spyOn(Borrower,'findByIdAndDelete').mockResolvedValue(req.params.id)
+            jest.spyOn(Borrower,'findByIdAndDelete').mockResolvedValue(req.params?.id)
 
-            await BorrowerController.deleteBorrower(req,res,next)
+            await BorrowerController.deleteBorrower(req as Request, res as Response, next)
 
            await expect(Borrower.findById).toHaveBeenCalledTimes(1)
            await expect(Operations.find).toHaveBeenCalledTimes(1)
@@ -154,12 +152,12 @@ describe("BorrowerController",()=>{
         })
 
         it("shouldn\'t delete Borrower since he not returned all books yet",async ()=>{
-            const req={
+             req={
                 params:{
-                    id:4
+                    id:'4'
                 }
             };
-            const res={
+             res={
                 status:jest.fn().mockReturnThis(),
                 json:jest.fn()
             };
@@ -169,11 +167,11 @@ describe("BorrowerController",()=>{
                 {_id:2,book:"second"}]
             
 
-            jest.spyOn(Borrower,'findById').mockResolvedValue(req.params.id)
+            jest.spyOn(Borrower,'findById').mockResolvedValue(req.params?.id)
             jest.spyOn(Operations,'find').mockResolvedValue(operationsMock)
             jest.spyOn(Book, 'find').mockResolvedValueOnce([{book:"first"},{book:"second"}]);
 
-            await BorrowerController.deleteBorrower(req,res,next)
+            await BorrowerController.deleteBorrower(req as Request,res as Response,next)
 
            await expect(Borrower.findById).toHaveBeenCalledTimes(1)
            await expect(Operations.find).toHaveBeenCalledTimes(1)
@@ -188,7 +186,7 @@ describe("BorrowerController",()=>{
 
     describe('add Book to Wishlist', () => {
         it('should perform adding book to wishlist of specific borrower', async() => {
-        const req ={
+         req ={
             params:{
                id:'973e7998uhklml'
             },
@@ -196,7 +194,7 @@ describe("BorrowerController",()=>{
                authorization:"Bearer token"
             }
         };
-        const res ={
+         res ={
             status:jest.fn().mockReturnThis(),
             json:jest.fn()
         };
@@ -208,10 +206,10 @@ describe("BorrowerController",()=>{
             save: jest.fn().mockResolvedValue({})
         }
         jest.spyOn(util, 'promisify').mockImplementation((fn) => fn);
-        jest.spyOn(Book,'findById').mockResolvedValue(req.params.id)
+        jest.spyOn(Book,'findById').mockResolvedValue(req.params?.id)
         jest.spyOn(Borrower,'findById').mockResolvedValue(BorrowerMock)
 
-        await BorrowerController.addWishBook(req,res,next)
+        await BorrowerController.addWishBook(req as Request,res as Response,next)
 
         await expect(util.promisify).toHaveBeenCalledTimes(1);
         await expect(Book.findById).toHaveBeenCalledTimes(1)
@@ -220,7 +218,7 @@ describe("BorrowerController",()=>{
        })
 
        it('shouldn\'t add same book to wishlist twice', async() => {
-        const req ={
+         req ={
             params:{
                id:'973e7998uhklml'
             },
@@ -228,7 +226,7 @@ describe("BorrowerController",()=>{
                authorization:"Bearer token"
             }
         };
-        const res ={
+         res ={
             status:jest.fn().mockReturnThis(),
             json:jest.fn()
         };
@@ -240,10 +238,10 @@ describe("BorrowerController",()=>{
             save: jest.fn().mockResolvedValue({})
         }
         jest.spyOn(util, 'promisify').mockImplementation((fn) => fn);
-        jest.spyOn(Book,'findById').mockResolvedValue(req.params.id)
+        jest.spyOn(Book,'findById').mockResolvedValue(req.params?.id)
         jest.spyOn(Borrower,'findById').mockResolvedValue(BorrowerMock)
 
-        await BorrowerController.addWishBook(req,res,next)
+        await BorrowerController.addWishBook(req as Request,res as Response,next)
 
         await expect(util.promisify).toHaveBeenCalledTimes(1);
         await expect(Book.findById).toHaveBeenCalledTimes(1)

@@ -162,7 +162,7 @@ it('shouldbe able to login', async () => {
       jest.spyOn(User, 'findOne').mockResolvedValue(user);
        jest.spyOn(user, 'save').mockResolvedValue();
 
-       await LoginController.userAuth.resetpassword(req,res,next);
+       await LoginController.userAuth.resetpassword(req as Request, res as Response, next);
 
        expect(User.findOne).toHaveBeenCalledWith( {phoneNumber:req.body.phone });
    await  expect(TwilioService.verifyUser).toHaveReturnedWith('approved');

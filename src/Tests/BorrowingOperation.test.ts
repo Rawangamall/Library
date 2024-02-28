@@ -1,25 +1,33 @@
-const BorrowingOperations = require('../app/BorrowingController').default;
-const BorrowingModel = require('../../Models/BorrowingModel');
-const Book = require('../../Models/BookModel');
+import { Request, Response, NextFunction } from 'express';
+import BorrowingOperations from '../app/Controllers/BorrowingController';
+import BorrowingModel from '../app/Models/BorrowingModel';
+import Book from '../app/Models/BookModel';
 
-const JWT = require("jsonwebtoken");
-const util = require("util");
+import JWT from "jsonwebtoken";
+import util from "util";
 
-jest.mock('./../app/BorrowingController');
-jest.mock('../../Models/BorrowingModel');
-jest.mock('../../Models/BookModel');
-jest.mock('jsonwebtoken');
+jest.mock('../app/Controllers/BorrowingController');
+jest.mock('../app/Models/BorrowingModel');
+jest.mock('../app/Models/BookModel');
+
+jest.mock('jsonwebtoken', () => ({
+    __esModule: true,
+    verify: jest.fn().mockResolvedValue({ id: 4 })
+  }));
 jest.mock('util');
+
 beforeEach(() => {
     jest.clearAllMocks();
 });
+let req: Partial<Request>
+let res: Partial<Response>
 
 
 describe('Borrowing operation controller', () => {
 
     describe('Borrowing Book', () => {
     it('should perform Borrowing operation for specific user and book', async() => {
-    const req ={
+     req ={
         params:{
            id:'973e7998uhklml'
         },
@@ -30,11 +38,11 @@ describe('Borrowing operation controller', () => {
             dueDate:'2024-2-7'
         }
     };
-    const res ={
+     res ={
         status:jest.fn().mockReturnThis(),
         json:jest.fn()
     };
-    const next =jest.fn()
+    const next:NextFunction =jest.fn()
 
     const bookMock = {
       availableQuantity: 4, 
@@ -43,7 +51,7 @@ describe('Borrowing operation controller', () => {
     };
     const borrowingMock = {
         borrower:'userid',
-        book:req.params.id,
+        book:req.params?.id,
         dueDate: '2024-02-06T22:00:00.000Z',
         returned: false,
         rentalFee: 0,
@@ -52,16 +60,13 @@ describe('Borrowing operation controller', () => {
      };
 
      jest.spyOn(BorrowingModel, 'create').mockReturnValue(borrowingMock);
-    jest.spyOn(JWT, 'verify').mockResolvedValue({ id: 'userid' });
-    jest.spyOn(util, 'promisify').mockImplementation((fn) => fn);
     jest.spyOn(Book,'findById').mockResolvedValue(bookMock)
     jest.spyOn(BorrowingModel,'findOne').mockResolvedValue(null) 
 
-    await BorrowingOperations.borrowBook(req,res,next)
+    await BorrowingOperations.borrowBook(req as Request, res as Response, next)
 
-    await expect(JWT.verify).toHaveBeenCalledWith("token", process.env.JWT_SECRET);
     await expect(util.promisify).toHaveBeenCalledTimes(1);
-    await expect(Book.findById).toHaveBeenCalledWith(req.params.id)
+    await expect(Book.findById).toHaveBeenCalledWith(req.params?.id)
     await expect(BorrowingModel.create).toHaveBeenCalledTimes(1)
     await expect(borrowingMock.save).toHaveBeenCalledTimes(1)
     expect(bookMock.availableQuantity).toBe(3)  //decres by 1
@@ -71,7 +76,7 @@ describe('Borrowing operation controller', () => {
 });
 
 it('should\'t perform borrow on outstock book ', async() => {
-    const req ={
+     req ={
         params:{
            id:'973e7998uhklml'
         },
@@ -82,7 +87,7 @@ it('should\'t perform borrow on outstock book ', async() => {
             dueDate:'2024-2-7'
         }
     };
-    const res ={
+     res ={
         status:jest.fn().mockReturnThis(),
         json:jest.fn()
     };
@@ -94,21 +99,20 @@ it('should\'t perform borrow on outstock book ', async() => {
       save: jest.fn().mockResolvedValue({})
     };
 
-    jest.spyOn(JWT, 'verify').mockResolvedValue({ id: 'userid' });
     jest.spyOn(util, 'promisify').mockImplementation((fn) => fn);
     jest.spyOn(Book,'findById').mockResolvedValue(bookMock)
 
-    await BorrowingOperations.borrowBook(req,res,next)
+    await BorrowingOperations.borrowBook(req as Request, res as Response, next)
 
     await expect(JWT.verify).toHaveBeenCalledWith("token", process.env.JWT_SECRET);
     await expect(util.promisify).toHaveBeenCalledTimes(1);
-    await expect(Book.findById).toHaveBeenCalledWith(req.params.id)
+    await expect(Book.findById).toHaveBeenCalledWith(req.params?.id)
    expect(res.status).toHaveBeenCalledWith(400)
    expect(res.json).toHaveBeenCalledWith('Book Stock out, check it later!')
 });
 
 it('shouldn\'t perform Borrowing operation twice if not returned yet', async() => {
-    const req ={
+     req ={
         params:{
            id:'973e7998uhklml'
         },
@@ -119,7 +123,7 @@ it('shouldn\'t perform Borrowing operation twice if not returned yet', async() =
             dueDate:'2024-2-7'
         }
     };
-    const res ={
+     res ={
         status:jest.fn().mockReturnThis(),
         json:jest.fn()
     };
@@ -130,17 +134,17 @@ it('shouldn\'t perform Borrowing operation twice if not returned yet', async() =
       bookType: 'free', 
       save: jest.fn().mockResolvedValue({})
     };
+     
 
-    jest.spyOn(JWT, 'verify').mockResolvedValue({ id: 'userid' });
-    jest.spyOn(util, 'promisify').mockImplementation((fn) => fn);
+        jest.spyOn(util, 'promisify').mockImplementation((fn) => fn);
     jest.spyOn(Book,'findById').mockResolvedValue(bookMock)
     jest.spyOn(BorrowingModel,'findOne').mockResolvedValue({operation:"there's one"}) 
 
-    await BorrowingOperations.borrowBook(req,res,next)
+    await BorrowingOperations.borrowBook(req as Request, res as Response, next)
 
     await expect(JWT.verify).toHaveBeenCalledWith("token", process.env.JWT_SECRET);
     await expect(util.promisify).toHaveBeenCalledTimes(1);
-    await expect(Book.findById).toHaveBeenCalledWith(req.params.id)
+    await expect(Book.findById).toHaveBeenCalledWith(req.params?.id)
    expect(res.status).toHaveBeenCalledWith(400)
    expect(res.json).toHaveBeenCalledWith('You\'re already borrowed that book!')
 
@@ -149,7 +153,7 @@ it('shouldn\'t perform Borrowing operation twice if not returned yet', async() =
 
 describe('Retrurn Book', () => {
     it('should return a book', async() => {
-        const req ={
+         req ={
             params:{
                id:'973e7998uhklml'
             },
@@ -157,7 +161,7 @@ describe('Retrurn Book', () => {
                authorization:"Bearer token"
             }
         };
-        const res ={
+         res ={
             status:jest.fn().mockReturnThis(),
             json:jest.fn()
         };
@@ -174,17 +178,16 @@ describe('Retrurn Book', () => {
             save: jest.fn().mockResolvedValue({})
         }
       
-          jest.spyOn(JWT, 'verify').mockResolvedValue({ id: 'userid' });
           jest.spyOn(util, 'promisify').mockImplementation((fn) => fn);
           jest.spyOn(BorrowingModel,'findOne').mockResolvedValue(operationMock);
           jest.spyOn(Book,'findById').mockResolvedValue(bookMock);
 
-          await BorrowingOperations.returnBook(req,res,next)
+          await BorrowingOperations.returnBook(req as Request, res as Response, next)
 
           await expect(JWT.verify).toHaveBeenCalledWith("token", process.env.JWT_SECRET);
           await expect(util.promisify).toHaveBeenCalledTimes(1);
           await expect(BorrowingModel.findOne).toHaveBeenCalledTimes(1)
-          await expect(Book.findById).toHaveBeenCalledWith(req.params.id)
+          await expect(Book.findById).toHaveBeenCalledWith(req.params?.id)
           await expect(operationMock.save).toHaveBeenCalledTimes(1);
           await expect(bookMock.save).toHaveBeenCalledTimes(1);
           expect(operationMock.returned).toBe(true)  
@@ -193,7 +196,7 @@ describe('Retrurn Book', () => {
     });
 
     it('shouldn\'t return a book twice', async() => {
-        const req ={
+         req ={
             params:{
                id:'973e7998uhklml'
             },
@@ -201,7 +204,7 @@ describe('Retrurn Book', () => {
                authorization:"Bearer token"
             }
         };
-        const res ={
+         res ={
             status:jest.fn().mockReturnThis(),
             json:jest.fn()
         };
@@ -218,17 +221,16 @@ describe('Retrurn Book', () => {
             save: jest.fn().mockResolvedValue({})
         }
       
-          jest.spyOn(JWT, 'verify').mockResolvedValue({ id: 'userid' });
           jest.spyOn(util, 'promisify').mockImplementation((fn) => fn);
           jest.spyOn(BorrowingModel,'findOne').mockResolvedValue(operationMock);
           jest.spyOn(Book,'findById').mockResolvedValue(bookMock);
 
-          await BorrowingOperations.returnBook(req,res,next)
+          await BorrowingOperations.returnBook(req as Request, res as Response, next)
 
           await expect(JWT.verify).toHaveBeenCalledWith("token", process.env.JWT_SECRET);
           await expect(util.promisify).toHaveBeenCalledTimes(1);
           await expect(BorrowingModel.findOne).toHaveBeenCalledTimes(1)
-          await expect(Book.findById).toHaveBeenCalledWith(req.params.id)
+          await expect(Book.findById).toHaveBeenCalledWith(req.params?.id)
           expect(res.status).toHaveBeenCalledWith(400)
           expect(res.json).toHaveBeenCalledWith({message:"You didn't borrow this book or already returned :)"})
     });

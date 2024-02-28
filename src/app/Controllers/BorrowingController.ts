@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
 import * as JWT from 'jsonwebtoken';
-import moment from 'moment';
 import { promisify } from 'util';
+import moment from 'moment';
+
 import QueryBuilder from './QueryBuilder';
 import ObserverManager from './BookObservable';
 
@@ -13,16 +13,18 @@ import CatchAsync from '../Utils/CatchAsync';
 class BorrowingOperations {
 
   static borrowBook = CatchAsync(async (req, res, next) => {
+    console.log("TES")
     const bookId = req.params.id;
     const token = req.headers.authorization?.split(' ')[1];
 
     if(!token){
         return res.status(401).json('You\'re not logged in, please go to login page');
      }
-   
+   console.log("here" , token)
      type VerifyCallback = (token: string, secret: string) => Promise<any>;
+     console.log(token,process.env.JWT_SECRET,"data")
      const decoded = await (promisify(JWT.verify) as VerifyCallback)(token, process.env.JWT_SECRET as string);
-
+console.log(decoded,"de")
      const userId = decoded.id; 
     const { dueDate  } = req.body;
 
