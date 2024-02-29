@@ -18,6 +18,7 @@ const salt = bcrypt.genSaltSync(saltRounds);
 class BorrowerController {
 
   static getBorrowerProfile = CatchAsync(async (req, res, next) => {
+    console.log("test")
     const borrowerId = parseInt(req.params.id);
     const borrower = await Borrower.findById(borrowerId);
 

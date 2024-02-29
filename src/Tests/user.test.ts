@@ -14,58 +14,59 @@ jest.mock('./../app/Models/UserModel');
   let req: Partial<Request>
   let res: Partial<Response>
   
-//describe('UserController - createUser', () => {    //never error
+describe('UserController - createUser', () => {   
 
-//   it('should create a new user', async () => {
-//      req = {
-//       body: {
-//         firstName: 'John',
-//         lastName: 'Wrick',
-//         phoneNumber: '12345189',
-//         role: 'employee',
-//         email: 'john.doe11@example.com',
-//         password: 'password1234!',
-//         salary: 4000,
-//       },
-//     };
+  it('should create a new user', async () => {
+     req = {
+      body: {
+        firstName: 'John',
+        lastName: 'Wrick',
+        phoneNumber: '12345189',
+        role: 'employee',
+        email: 'john.doe11@example.com',
+        password: 'password1234!',
+        salary: 4000,
+      },
+    };
 
-//      res = {
-//       status: jest.fn().mockReturnThis(),
-//       json: jest.fn(),
-//     };
-//     const next: NextFunction = jest.fn();
+     res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+    const next: NextFunction = jest.fn();
 
-//     jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashedPassword');
+    jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashedPassword');
 
-//     const userClassInstanceMock:any = {
-//       firstName: 'John',
-//       lastName: 'Wrick',
-//       phoneNumber: '12345189',
-//       role: 'employee',
-//       email: 'john.doe11@example.com',
-//       password: 'hashedPassword',
-//       salary: 4000,
-//     };
+    const userClassInstanceMock= {
+      firstName: 'John',
+      lastName: 'Wrick',
+      phoneNumber: '12345189',
+      role: 'employee',
+      email: 'john.doe11@example.com',
+      password: 'hashedPassword',
+      salary: 4000,
+    };
+    
+    jest.spyOn(UserClass.prototype, 'constructor' as never).mockReturnValue(userClassInstanceMock as never); //hateful never error
+    jest.spyOn(User.prototype, 'save').mockReturnValue(userClassInstanceMock);
 
-//     jest.spyOn(UserClass.prototype, 'constructor').mockReturnValue(userClassInstanceMock);
-//     jest.spyOn(User.prototype, 'save').mockReturnValue(userClassInstanceMock);
+    await UserController.createUser(req as Request, res as Response, next);
 
-//     await UserController.createUser(req as Request, res as Response, next);
+    expect(UserClass.prototype.constructor).toHaveBeenCalledWith(
+      'John',
+      'Wrick',
+      '12345189',
+      'employee',
+      'john.doe11@example.com',
+      'hashedPassword',
+      4000
+    );
+    expect(UserClass.prototype.constructor).toHaveReturnedWith(userClassInstanceMock)
+   await expect(User.prototype.save).toHaveBeenCalledWith(userClassInstanceMock);  
+    expect(res.status).toHaveBeenCalledWith(201);   //not called issue
 
-//     expect(UserClass.prototype.constructor).toHaveBeenCalledWith(
-//       'John',
-//       'Wrick',
-//       '12345189',
-//       'employee',
-//       'john.doe11@example.com',
-//       'hashedPassword',
-//       4000
-//     );
-//    await expect(User.prototype.save).toHaveBeenCalledWith(userClassInstanceMock);  
-//     expect(res.status).toHaveBeenCalledWith(201);   //not called issue
-
-//   });
-// })
+  });
+})
 
 
  

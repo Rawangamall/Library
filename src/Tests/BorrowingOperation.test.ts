@@ -4,9 +4,9 @@ import BorrowingModel from '../app/Models/BorrowingModel';
 import Book from '../app/Models/BookModel';
 import util from "util";
 
-jest.mock('../app/Controllers/BorrowingController');
 jest.mock('../app/Models/BorrowingModel');
 jest.mock('../app/Models/BookModel');
+jest.mock('./../app/Controllers/BookObservable');
 
 jest.mock('jsonwebtoken', () => ({
     __esModule: true,
@@ -25,17 +25,17 @@ describe('Borrowing operation controller', () => {
 
     describe('Borrowing Book', () => {
     it('should perform Borrowing operation for specific user and book', async() => {
-     req ={
-        params:{
-           id:'973e7998uhklml'
-        },
-        headers:{
-           authorization:"Bearer token"
-        },
-        body:{
-            dueDate:'2024-2-7'
-        }
-    };
+      req ={
+         params:{
+            id:'973e7998uhklml'
+         },
+         headers:{
+            authorization:"Bearer token"
+         },
+         body:{
+             dueDate:'2024-2-7'
+         }
+     };
      res ={
         status:jest.fn().mockReturnThis(),
         json:jest.fn()
@@ -58,8 +58,9 @@ describe('Borrowing operation controller', () => {
      };
 
      jest.spyOn(BorrowingModel, 'create').mockReturnValue(borrowingMock);
-    jest.spyOn(Book,'findById').mockResolvedValue(bookMock)
-    jest.spyOn(BorrowingModel,'findOne').mockResolvedValue(null) 
+     jest.spyOn(util, 'promisify').mockImplementation((fn) => fn);
+     jest.spyOn(Book,'findById').mockResolvedValue(bookMock)
+     jest.spyOn(BorrowingModel,'findOne').mockResolvedValue(null) 
 
     await BorrowingOperations.borrowBook(req as Request, res as Response, next)
 
