@@ -28,9 +28,20 @@ const bookSchema = new Schema({
     type: Number,
     required: true ,
     default: 0
+  },
+  sales: {   
+    type: Number,
+    required: true ,
+    default: 0
+  },
+  rating: {
+    type: Number,
+    required: true,
+    default: 0
   }
 }, { timestamps: true });
 
+bookSchema.index({ rating: -1 }, { partialFilterExpression: { rating: { $in: [9, 10] } } });
 
 const Book = model('Book', bookSchema);
 

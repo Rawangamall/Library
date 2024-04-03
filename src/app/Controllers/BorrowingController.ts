@@ -54,6 +54,7 @@ class BorrowingOperations {
 
     }
     book.availableQuantity -=1;
+    book.sales +=1;
 
     await borrowingResult.save();
     await book.save();
@@ -111,6 +112,7 @@ class BorrowingOperations {
     }
     res.status(200).json(operations)
   })
+
 }
 
 

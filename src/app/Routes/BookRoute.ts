@@ -5,6 +5,8 @@ const upload = multer();
 
 import BookController from "./../Controllers/BookController";
 import {BookValidPATCH,BookValidPOST} from "./../Core/Validations/Book";
+import {RateValidPOST} from "./../Core/Validations/Rate";
+
 import validationMW from "./../Middlewares/validateMW";
 const auth = require("./../Middlewares/authenticationMW").auth
 const authorize = require("./../Middlewares/authorizationMW").authorize
@@ -21,6 +23,13 @@ router.route("/book/:id")
       .get({rateLimit}.rateLimit,BookController.getBook)  //auth,authorize(['admin','employee', 'manager','borrower']),
       .delete(BookController.delBook)  //auth,authorize(['employee', 'manager']),
       
+router.route("/books/bestseller")
+       .get(BookController.BestsellerBooks)
 
+router.route("/books/popularBooks")
+      .get(BookController.popularBooks)
+
+router.route("/rating/:id")
+      .post({rateLimit}.rateLimit,upload.none(),auth,authorize(['borrower']),RateValidPOST,validationMW,BookController.rateBook)
 
 export default router;

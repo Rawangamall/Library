@@ -37,8 +37,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const JWT = __importStar(require("jsonwebtoken"));
-const moment_1 = __importDefault(require("moment"));
 const util_1 = require("util");
+const moment_1 = __importDefault(require("moment"));
 const QueryBuilder_1 = __importDefault(require("./QueryBuilder"));
 const BookObservable_1 = __importDefault(require("./BookObservable"));
 const BorrowingModel_1 = __importDefault(require("./../Models/BorrowingModel"));
@@ -79,6 +79,7 @@ BorrowingOperations.borrowBook = (0, CatchAsync_1.default)((req, res, next) => _
         borrowingResult = yield BorrowingModel_1.default.create({ borrower: userId, book: bookId, dueDate: dueDate, rentalFee: rentAmount });
     }
     book.availableQuantity -= 1;
+    book.sales += 1;
     yield borrowingResult.save();
     yield book.save();
     if (book.availableQuantity == 0) {

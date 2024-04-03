@@ -1,4 +1,8 @@
+import * as JWT from 'jsonwebtoken';
+import { promisify } from 'util';
+
 import Book from './../Models/BookModel';
+import Rating from './../Models/RatingModel';
 import { BookClass, RentalBook } from './../Classes/BookClass';
 import QueryOperation from './QueryOperations';
 import CatchAsync from './../Utils/CatchAsync';
@@ -13,13 +17,13 @@ class BookController {
   
     static createBook =  CatchAsync(async (req, res, next) =>{
         let newBook;
-        const {title,author ,quantity,floor,section,shelf,type,fee} = req.body;
+        const {title,author ,quantity,floor,section,shelf,type,fee ,sales} = req.body;
         const shelfLocation = `${floor}-${section.toUpperCase()}-${shelf}`;
 
         if(type === 'free'){
-            newBook = new BookClass(title,author ,parseInt(quantity),shelfLocation);
+            newBook = new BookClass(title,author ,parseInt(quantity),shelfLocation,sales);
         }else if(type === 'rental'){
-           newBook = new RentalBook(title,author ,parseInt(quantity),shelfLocation,parseInt(fee));
+           newBook = new RentalBook(title,author ,parseInt(quantity),shelfLocation,parseInt(fee),sales);
         }
         
         const book = new Book(newBook);
@@ -111,6 +115,73 @@ class BookController {
       res.status(200).json(book);
   
     });
+
+  static BestsellerBooks = CatchAsync(async (req,res,next)=> {
+    
+    const limit = parseInt(req.query?.limit as string) || 10
+    const books = await Book.find().sort("-sales").limit(limit)
+
+    if(books.length == 0){
+     res.status(404).json({message:"No books borrowed yet"})
+    }
+
+    res.status(200).json(books)
+  });
+
+  static popularBooks = CatchAsync(async (req,res,next) =>{
+    const limit = parseInt(req.query?.limit as string) || 10
+
+    const books = await Book.find({ rating: { $in: [9, 10] } }).limit(limit)    //.explain('executionStats')
+    res.json({message:"success",books})
+  });
+
+  static rateBook = CatchAsync(async (req,res,next)=>{
+    const bookId = req.params.id;
+    const value = parseInt(req.body?.value as string);
+
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if(!token){
+        return res.status(401).json('You\'re not logged in, please go to login page');
+     }
+
+     type VerifyCallback = (token: string, secret: string) => Promise<any>;
+     const decoded = await (promisify(JWT.verify) as VerifyCallback)(token, process.env.JWT_SECRET as string);
+
+     const book = await Book.findById(bookId)
+     if(!book){
+      res.status(404).json({message:"Book not found to be rated"})
+     }
+
+     const existingRating = await Rating.findOne({ user: decoded.id, book: bookId });
+
+     // If the user already rated the book, update the existing rating
+     if (existingRating) {
+
+         existingRating.ratingValue = value;
+         await existingRating.save();
+
+     } else {
+         const rating = new Rating({
+             user: decoded.id,
+             book: bookId,
+             ratingValue: value
+         });
+         await rating.save();
+     }
+
+    //new average rating for the book
+    const ratings = await Rating.find({ book: bookId });
+
+    const sumRatings = ratings.reduce((sum, rating) => sum + rating.ratingValue, 0);
+    const averageRating = ratings.length === 0 ? 0 : sumRatings / ratings.length;
+
+     book.rating = averageRating
+     await book.save();
+
+    res.status(200).json({message:'Rating success'});
+  });
 }  
+
 
 export default BookController;

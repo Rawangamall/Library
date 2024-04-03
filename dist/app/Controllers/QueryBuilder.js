@@ -41,7 +41,7 @@ class QueryBuilder {
             if (this.returnedFilter !== null) {
                 mongooseQuery = mongooseQuery.where('returned').equals(this.returnedFilter);
             }
-            if (Object.keys(this.sortOptions).length > 0) {
+            if (this.sortOptions !== null) {
                 mongooseQuery = mongooseQuery.sort(this.sortOptions);
             }
             if (this.limitValue !== null) {

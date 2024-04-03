@@ -51,6 +51,7 @@ class BorrowerController {
 }
 _a = BorrowerController;
 BorrowerController.getBorrowerProfile = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("test");
     const borrowerId = parseInt(req.params.id);
     const borrower = yield UserModel_1.Borrower.findById(borrowerId);
     if (!borrower) {
