@@ -16,8 +16,10 @@ const rateLimitMW_1 = require("../Middlewares/rateLimitMW");
 const PhoneVerifactionMW_1 = require("./../Middlewares/PhoneVerifactionMW");
 router.route("/operation/:id") //bookID
     .post({ rateLimit: rateLimitMW_1.rateLimit }.rateLimit, auth, authorize(['borrower']), upload.none(), PhoneVerifactionMW_1.borrowerPHVerifyMW.Verify, Operation_1.BorrowingValidPOST, validateMW_1.default, BorrowingController_1.default.borrowBook) //auth,authorize(['borrower']),
-    .get(auth, authorize(['admin', 'manager']), { rateLimit: rateLimitMW_1.rateLimit }.rateLimit)
+    // .get(auth,authorize(['admin', 'manager']),{rateLimit}.rateLimit)  
     .patch(auth, authorize(['borrower']), { rateLimit: rateLimitMW_1.rateLimit }.rateLimit, BorrowingController_1.default.returnBook);
 router.route("/operations")
-    .get(auth, authorize(['admin', 'manager']), Operation_1.BorrowingValidGet, validateMW_1.default, BorrowingController_1.default.OperationList);
+    .get(auth, authorize(['admin', 'manager']), BorrowingController_1.default.OperationList);
+router.route("/rentBooks/charge")
+    .post(BorrowingController_1.default.chargeForBorrow);
 exports.default = router;

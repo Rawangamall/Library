@@ -11,43 +11,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 class QueryBuilder {
     constructor(model) {
-        this.sortOptions = '';
-        this.limitValue = 10;
-        this.returnedFilter = null;
         this.model = model;
         this.query = this.model.find();
     }
     find(query) {
-        this.query = query;
+        this.query = this.model.find(query);
         return this;
     }
     filterReturned(returned) {
         if (returned) {
-            this.returnedFilter = returned;
+            this.query = this.query.where('returned').equals(returned);
         }
         return this;
     }
     sort(sortOptions) {
-        this.sortOptions = sortOptions;
+        this.query = this.query.sort(sortOptions);
         return this;
     }
     limit(limit) {
-        this.limitValue = limit;
+        this.query = this.query.limit(limit);
+        return this;
+    }
+    populate(path, select) {
+        this.query = this.query.populate(path, select);
         return this;
     }
     build() {
         return __awaiter(this, void 0, void 0, function* () {
-            let mongooseQuery = this.model.find(this.query);
-            if (this.returnedFilter !== null) {
-                mongooseQuery = mongooseQuery.where('returned').equals(this.returnedFilter);
-            }
-            if (this.sortOptions !== null) {
-                mongooseQuery = mongooseQuery.sort(this.sortOptions);
-            }
-            if (this.limitValue !== null) {
-                mongooseQuery = mongooseQuery.limit(this.limitValue);
-            }
-            return mongooseQuery;
+            return yield this.query.exec();
         });
     }
 }

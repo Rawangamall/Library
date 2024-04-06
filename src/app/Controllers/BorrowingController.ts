@@ -94,6 +94,49 @@ class BorrowingOperations {
   });
 
   static chargeForBorrow = CatchAsync(async(req,res,next) =>{
+    const payload = req.body;
+    const sig = req.headers['stripe-signature'];
+
+    // Verify webhook signature
+    if (!sig) {
+      return res.status(400).json({ error: 'Stripe signature missing in request headers' });
+  }
+
+  const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET as string);
+
+  if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+
+      const userId = session.metadata?.userId;
+      const bookId = session.metadata?.bookId;
+      const rentAmount = parseInt(session.metadata?.Amount as string);
+
+      if (!userId || !bookId || !rentAmount) {
+          return res.status(400).json({ error: 'Missing metadata in session object' });
+      }
+
+      const book = await Book.findById(bookId);
+      if (!book) {
+          return res.status(404).json({ error: 'Book not found' });
+      }
+    
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: rentAmount * 100, 
+            currency: 'usd',
+            description: `Rent for ${book.title}`,
+            customer: userId, 
+        });
+    
+        await BookBorrowing.create({ borrower: userId, book: bookId, rentalFee: rentAmount });
+    
+        // Update book availability and sales count
+        book.availableQuantity -= 1;
+        book.sales += 1;
+        await book.save();
+
+        res.status(200).json({ message: 'Payment processed successfully' });
+    }
+    res.status(400).json({ message: 'Event type not handled' });
 
   });
 

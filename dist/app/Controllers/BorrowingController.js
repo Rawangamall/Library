@@ -39,11 +39,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const JWT = __importStar(require("jsonwebtoken"));
 const util_1 = require("util");
 const moment_1 = __importDefault(require("moment"));
+const stripe_1 = __importDefault(require("stripe"));
 const QueryBuilder_1 = __importDefault(require("./QueryBuilder"));
 const BookObservable_1 = __importDefault(require("./BookObservable"));
 const BorrowingModel_1 = __importDefault(require("./../Models/BorrowingModel"));
 const BookModel_1 = __importDefault(require("./../Models/BookModel"));
 const CatchAsync_1 = __importDefault(require("../Utils/CatchAsync"));
+const Stripe_SecretKey = process.env.Stripe_SecretKey;
+const stripe = new stripe_1.default(Stripe_SecretKey);
 class BorrowingOperations {
 }
 _a = BorrowingOperations;
@@ -51,6 +54,7 @@ BorrowingOperations.borrowBook = (0, CatchAsync_1.default)((req, res, next) => _
     var _b;
     const bookId = req.params.id;
     const token = (_b = req.headers.authorization) === null || _b === void 0 ? void 0 : _b.split(' ')[1];
+    let session;
     if (!token) {
         return res.status(401).json('You\'re not logged in, please go to login page');
     }
@@ -75,22 +79,82 @@ BorrowingOperations.borrowBook = (0, CatchAsync_1.default)((req, res, next) => _
         const dueDateObj = (0, moment_1.default)(dueDate, 'YYYY-MM-DD', true);
         const diffInDays = dueDateObj.diff(currentDate, 'days');
         const rentAmount = diffInDays * book.rentalFee;
-        req.body.rentAmount = rentAmount;
-        borrowingResult = yield BorrowingModel_1.default.create({ borrower: userId, book: bookId, dueDate: dueDate, rentalFee: rentAmount });
+        session = yield stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: `${book.title}`,
+                            description: `the ${book.title} written by ${book.author}`,
+                        },
+                        unit_amount: rentAmount * 100, // in cents
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: 'https://example.com/success',
+            cancel_url: 'https://example.com/cancel',
+            metadata: {
+                userId: userId,
+                bookId: bookId,
+                Amount: rentAmount
+            },
+        });
+        //  borrowingResult = await BookBorrowing.create({borrower:userId, book:bookId, dueDate:dueDate , rentalFee:rentAmount });
     }
-    book.availableQuantity -= 1;
-    book.sales += 1;
-    yield borrowingResult.save();
-    yield book.save();
-    if (book.availableQuantity == 0) {
-        BookObservable_1.default.notifyObservers(bookId, false);
+    // book.availableQuantity -=1;
+    // book.sales +=1;
+    // await borrowingResult.save();
+    // await book.save();
+    // if(book.availableQuantity == 0){
+    //   ObserverManager.notifyObservers(bookId,false)
+    // }
+    // res.status(201).json({data: borrowingResult });
+    res.status(201).json({ data: borrowingResult, sessionId: session === null || session === void 0 ? void 0 : session.id });
+}));
+BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c, _d, _e;
+    const payload = req.body;
+    const sig = req.headers['stripe-signature'];
+    // Verify webhook signature
+    if (!sig) {
+        return res.status(400).json({ error: 'Stripe signature missing in request headers' });
     }
-    res.status(201).json({ data: borrowingResult });
+    const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    if (event.type === 'checkout.session.completed') {
+        const session = event.data.object;
+        const userId = (_c = session.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+        const bookId = (_d = session.metadata) === null || _d === void 0 ? void 0 : _d.bookId;
+        const rentAmount = parseInt((_e = session.metadata) === null || _e === void 0 ? void 0 : _e.Amount);
+        if (!userId || !bookId || !rentAmount) {
+            return res.status(400).json({ error: 'Missing metadata in session object' });
+        }
+        const book = yield BookModel_1.default.findById(bookId);
+        if (!book) {
+            return res.status(404).json({ error: 'Book not found' });
+        }
+        const paymentIntent = yield stripe.paymentIntents.create({
+            amount: rentAmount * 100,
+            currency: 'usd',
+            description: `Rent for ${book.title}`,
+            customer: userId,
+        });
+        yield BorrowingModel_1.default.create({ borrower: userId, book: bookId, rentalFee: rentAmount });
+        // Update book availability and sales count
+        book.availableQuantity -= 1;
+        book.sales += 1;
+        yield book.save();
+        res.status(200).json({ message: 'Payment processed successfully' });
+    }
+    res.status(400).json({ message: 'Event type not handled' });
 }));
 BorrowingOperations.returnBook = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
+    var _f;
     const bookId = req.params.id;
-    const token = (_c = req.headers.authorization) === null || _c === void 0 ? void 0 : _c.split(' ')[1];
+    const token = (_f = req.headers.authorization) === null || _f === void 0 ? void 0 : _f.split(' ')[1];
     if (!token) {
         return res.status(401).json('You\'re not logged in, please go to login page');
     }
@@ -114,7 +178,9 @@ BorrowingOperations.OperationList = (0, CatchAsync_1.default)((req, res, next) =
     const operationsQuery = new QueryBuilder_1.default(BorrowingModel_1.default)
         .limit(limit)
         .sort(sort)
-        .filterReturned(filter);
+        .filterReturned(filter)
+        .populate('borrower', 'email')
+        .populate('book');
     const operations = yield operationsQuery.build();
     if (operations.length === 0) {
         return res.status(404).json({ message: 'There\'s no operation' });
