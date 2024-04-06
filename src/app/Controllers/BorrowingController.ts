@@ -1,7 +1,7 @@
 import * as JWT from 'jsonwebtoken';
 import { promisify } from 'util';
 import moment from 'moment';
-
+import Stripe from 'stripe';
 import QueryBuilder from './QueryBuilder';
 import ObserverManager from './BookObservable';
 
@@ -9,12 +9,15 @@ import BookBorrowing from './../Models/BorrowingModel';
 import Book from './../Models/BookModel';
 import CatchAsync from '../Utils/CatchAsync';
 
+const Stripe_SecretKey=process.env.Stripe_SecretKey  as string
+const stripe = new Stripe(Stripe_SecretKey);
 
 class BorrowingOperations {
 
   static borrowBook = CatchAsync(async (req, res, next) => {
     const bookId = req.params.id;
     const token = req.headers.authorization?.split(' ')[1];
+    let session 
 
     if(!token){
         return res.status(401).json('You\'re not logged in, please go to login page');
@@ -48,22 +51,50 @@ class BorrowingOperations {
       const diffInDays = dueDateObj.diff(currentDate, 'days');
       const rentAmount = diffInDays * book.rentalFee;
   
-      req.body.rentAmount = rentAmount; 
-
-     borrowingResult = await BookBorrowing.create({borrower:userId, book:bookId, dueDate:dueDate , rentalFee:rentAmount });
+       session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+            {
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                      name: `${book.title}`, 
+                      description: `the ${book.title} written by ${book.author}`, 
+                  },
+                    unit_amount: rentAmount*100, // in cents
+                },
+                quantity: 1,
+            },
+        ],
+        mode: 'payment',
+        success_url: 'https://example.com/success',
+        cancel_url: 'https://example.com/cancel',
+        metadata: {
+          userId: userId,
+          bookId: bookId,
+          Amount:rentAmount
+      },
+    });
+   //  borrowingResult = await BookBorrowing.create({borrower:userId, book:bookId, dueDate:dueDate , rentalFee:rentAmount });
 
     }
-    book.availableQuantity -=1;
-    book.sales +=1;
+    // book.availableQuantity -=1;
+    // book.sales +=1;
 
-    await borrowingResult.save();
-    await book.save();
+    // await borrowingResult.save();
+    // await book.save();
 
-    if(book.availableQuantity == 0){
-      ObserverManager.notifyObservers(bookId,false)
-    }
+    // if(book.availableQuantity == 0){
+    //   ObserverManager.notifyObservers(bookId,false)
+    // }
 
-    res.status(201).json({data: borrowingResult });
+    // res.status(201).json({data: borrowingResult });
+    res.status(201).json({data: borrowingResult , sessionId: session?.id });
+
+  });
+
+  static chargeForBorrow = CatchAsync(async(req,res,next) =>{
+
   });
 
   static returnBook = CatchAsync(async (req, res, next) => {
@@ -105,6 +136,8 @@ class BorrowingOperations {
     .limit(limit)
     .sort(sort)
     .filterReturned(filter)
+    .populate('borrower', 'email')
+    .populate('book');
 
     const operations = await operationsQuery.build();
     if(operations.length === 0){

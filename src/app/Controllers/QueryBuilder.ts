@@ -1,11 +1,8 @@
-import { Model, Document, FilterQuery, Query } from 'mongoose';
+import { Model, Document , Query } from 'mongoose';
 
 class QueryBuilder<T extends Document> {
   private model: Model<T>;
   private query: Query<T[], T>;
-  private sortOptions: string = '';
-  private limitValue: number =10;
-  private returnedFilter: boolean | null = null;
 
   constructor(model: Model<T>) {
     this.model = model;
@@ -13,45 +10,35 @@ class QueryBuilder<T extends Document> {
   }
 
   find(query: any): this {
-    this.query = query;
+    this.query = this.model.find(query);
     return this;
   }
 
   filterReturned(returned: boolean): this {
-    if(returned){
-    this.returnedFilter = returned;
+    if (returned) {
+      this.query = this.query.where('returned').equals(returned);
     }
     return this;
   }
+
   sort(sortOptions: string): this {
-    this.sortOptions = sortOptions;
+    this.query = this.query.sort(sortOptions);
     return this;
   }
 
   limit(limit: number): this {
-    this.limitValue = limit;
+    this.query = this.query.limit(limit);
     return this;
   }
 
-
+  populate(path: string, select?: string): this {
+    this.query = this.query.populate(path, select);
+    return this;
+  }
 
   async build(): Promise<T[]> {
-    let mongooseQuery = this.model.find(this.query);
-    if (this.returnedFilter !== null) {
-      mongooseQuery = mongooseQuery.where('returned').equals(this.returnedFilter);
-    }
-
-    if (this.sortOptions!== null) {
-      mongooseQuery = mongooseQuery.sort(this.sortOptions);
-    }
-
-    if (this.limitValue !== null) {
-      mongooseQuery = mongooseQuery.limit(this.limitValue);
-    }
-
-
-    return mongooseQuery;
+    return await this.query.exec();
   }
 }
 
-export default QueryBuilder
+export default QueryBuilder;

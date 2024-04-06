@@ -8,7 +8,7 @@
     "build": "tsc",
     "dev": "nodemon --exec ts-node ./src/server.ts",
     "test": "jest --config jest.config.ts"
-  }, 
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -29,6 +29,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemon": "^3.0.3",
     "path": "^0.12.7",
+    "stripe": "^14.24.0",
     "twilio": "^4.20.1"
   },
   "devDependencies": {

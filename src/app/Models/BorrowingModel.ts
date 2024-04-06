@@ -1,3 +1,5 @@
+import { NextFunction } from "express";
+
 const { Schema, model } = require('mongoose');
 
 const bookBorrowingSchema = new Schema({
@@ -24,6 +26,7 @@ const bookBorrowingSchema = new Schema({
     default: 0
   }
 }, { timestamps: true });
+
 
 const BorrowingModel = model('Borrowing', bookBorrowingSchema);
 

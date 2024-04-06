@@ -14,10 +14,12 @@ import { borrowerPHVerifyMW ,userPHVerifyMW} from "./../Middlewares/PhoneVerifac
 
 router.route("/operation/:id")  //bookID
       .post({rateLimit}.rateLimit,auth,authorize(['borrower']),upload.none(),borrowerPHVerifyMW.Verify,BorrowingValidPOST,validationMW,BorrowingOperations.borrowBook)   //auth,authorize(['borrower']),
-      .get(auth,authorize(['admin', 'manager']),{rateLimit}.rateLimit)  
+     // .get(auth,authorize(['admin', 'manager']),{rateLimit}.rateLimit)  
       .patch(auth,authorize(['borrower']),{rateLimit}.rateLimit,BorrowingOperations.returnBook)
 
 router.route("/operations")
-       .get(auth,authorize(['admin', 'manager']),BorrowingValidGet,validationMW,BorrowingOperations.OperationList)
+       .get(auth,authorize(['admin', 'manager']),BorrowingOperations.OperationList)
 
+router.route("/rentBooks/charge")
+      .post(BorrowingOperations.chargeForBorrow)
 export default router;
