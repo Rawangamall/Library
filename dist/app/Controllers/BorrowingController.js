@@ -100,6 +100,7 @@ BorrowingOperations.borrowBook = (0, CatchAsync_1.default)((req, res, next) => _
             metadata: {
                 userId: userId,
                 bookId: bookId,
+                dueDate: dueDate,
                 Amount: rentAmount
             },
         });
@@ -107,20 +108,20 @@ BorrowingOperations.borrowBook = (0, CatchAsync_1.default)((req, res, next) => _
     res.status(201).json({ data: borrowingResult, sessionId: session === null || session === void 0 ? void 0 : session.id });
 }));
 BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d, _e;
-    const payload = req.body;
+    var _c, _d, _e, _f;
+    const payload = req.body.toString();
     const sig = req.headers['stripe-signature'];
     // Verify webhook signature
     if (!sig) {
         return res.status(400).json({ error: 'Stripe signature missing in request headers' });
     }
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    console.log(event.type, "type");
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const userId = (_c = session.metadata) === null || _c === void 0 ? void 0 : _c.userId;
         const bookId = (_d = session.metadata) === null || _d === void 0 ? void 0 : _d.bookId;
         const rentAmount = parseInt((_e = session.metadata) === null || _e === void 0 ? void 0 : _e.Amount);
+        const dueDate = (_f = session.metadata) === null || _f === void 0 ? void 0 : _f.dueDate;
         if (!userId || !bookId || !rentAmount) {
             return res.status(400).json({ error: 'Missing metadata in session object' });
         }
@@ -134,8 +135,7 @@ BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next)
             description: `Rent for ${book.title}`,
             customer: userId,
         });
-        console.log("paymentIntent", paymentIntent);
-        yield BorrowingModel_1.default.create({ borrower: userId, book: bookId, rentalFee: rentAmount });
+        yield BorrowingModel_1.default.create({ borrower: userId, book: bookId, rentalFee: rentAmount, dueDate: dueDate });
         // Update book availability and sales count
         book.availableQuantity -= 1;
         book.sales += 1;
@@ -145,9 +145,9 @@ BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next)
     res.status(400).json({ message: 'Event type not handled' });
 }));
 BorrowingOperations.returnBook = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f;
+    var _g;
     const bookId = req.params.id;
-    const token = (_f = req.headers.authorization) === null || _f === void 0 ? void 0 : _f.split(' ')[1];
+    const token = (_g = req.headers.authorization) === null || _g === void 0 ? void 0 : _g.split(' ')[1];
     if (!token) {
         return res.status(401).json('You\'re not logged in, please go to login page');
     }
