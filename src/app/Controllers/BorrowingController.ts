@@ -75,20 +75,9 @@ class BorrowingOperations {
           Amount:rentAmount
       },
     });
-   //  borrowingResult = await BookBorrowing.create({borrower:userId, book:bookId, dueDate:dueDate , rentalFee:rentAmount });
 
     }
-    // book.availableQuantity -=1;
-    // book.sales +=1;
 
-    // await borrowingResult.save();
-    // await book.save();
-
-    // if(book.availableQuantity == 0){
-    //   ObserverManager.notifyObservers(bookId,false)
-    // }
-
-    // res.status(201).json({data: borrowingResult });
     res.status(201).json({data: borrowingResult , sessionId: session?.id });
 
   });
@@ -103,7 +92,7 @@ class BorrowingOperations {
   }
 
   const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET as string);
-
+console.log(event.type,"type")
   if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
 
@@ -126,7 +115,7 @@ class BorrowingOperations {
             description: `Rent for ${book.title}`,
             customer: userId, 
         });
-    
+console.log("paymentIntent",paymentIntent)    
         await BookBorrowing.create({ borrower: userId, book: bookId, rentalFee: rentAmount });
     
         // Update book availability and sales count

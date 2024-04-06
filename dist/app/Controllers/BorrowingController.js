@@ -103,16 +103,7 @@ BorrowingOperations.borrowBook = (0, CatchAsync_1.default)((req, res, next) => _
                 Amount: rentAmount
             },
         });
-        //  borrowingResult = await BookBorrowing.create({borrower:userId, book:bookId, dueDate:dueDate , rentalFee:rentAmount });
     }
-    // book.availableQuantity -=1;
-    // book.sales +=1;
-    // await borrowingResult.save();
-    // await book.save();
-    // if(book.availableQuantity == 0){
-    //   ObserverManager.notifyObservers(bookId,false)
-    // }
-    // res.status(201).json({data: borrowingResult });
     res.status(201).json({ data: borrowingResult, sessionId: session === null || session === void 0 ? void 0 : session.id });
 }));
 BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
@@ -124,6 +115,7 @@ BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next)
         return res.status(400).json({ error: 'Stripe signature missing in request headers' });
     }
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    console.log(event.type, "type");
     if (event.type === 'checkout.session.completed') {
         const session = event.data.object;
         const userId = (_c = session.metadata) === null || _c === void 0 ? void 0 : _c.userId;
@@ -142,6 +134,7 @@ BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next)
             description: `Rent for ${book.title}`,
             customer: userId,
         });
+        console.log("paymentIntent", paymentIntent);
         yield BorrowingModel_1.default.create({ borrower: userId, book: bookId, rentalFee: rentAmount });
         // Update book availability and sales count
         book.availableQuantity -= 1;
