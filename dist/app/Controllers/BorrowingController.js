@@ -109,7 +109,7 @@ BorrowingOperations.borrowBook = (0, CatchAsync_1.default)((req, res, next) => _
 }));
 BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _c, _d, _e, _f;
-    const payload = req.body.toString();
+    const payload = req.rawBody;
     const sig = req.headers['stripe-signature'];
     // Verify webhook signature
     if (!sig) {

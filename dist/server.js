@@ -31,8 +31,15 @@ server.use((0, cors_1.default)({
     origin: "*",
 }));
 //body parse
-server.use(express_1.default.json());
 server.use(express_1.default.urlencoded({ extended: false }));
+server.use(express_1.default.json({
+    verify: function (req, res, buf) {
+        var url = req.originalUrl;
+        if (url === null || url === void 0 ? void 0 : url.startsWith('/rentBooks/charge')) {
+            req.rawBody = buf.toString();
+        }
+    }
+}));
 //Routes 
 server.use(LoginRoute_1.default);
 server.use(UserRoute_1.default);
