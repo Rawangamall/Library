@@ -72,6 +72,7 @@ class BorrowingOperations {
         metadata: {
           userId: userId,
           bookId: bookId,
+          dueDate:dueDate,
           Amount:rentAmount
       },
     });
@@ -83,7 +84,7 @@ class BorrowingOperations {
   });
 
   static chargeForBorrow = CatchAsync(async(req,res,next) =>{
-    const payload = req.body;
+    const payload = req.body.toString();
     const sig = req.headers['stripe-signature'];
 
     // Verify webhook signature
@@ -92,13 +93,14 @@ class BorrowingOperations {
   }
 
   const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET as string);
-console.log(event.type,"type")
+
   if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
 
       const userId = session.metadata?.userId;
       const bookId = session.metadata?.bookId;
       const rentAmount = parseInt(session.metadata?.Amount as string);
+      const dueDate = session.metadata?.dueDate
 
       if (!userId || !bookId || !rentAmount) {
           return res.status(400).json({ error: 'Missing metadata in session object' });
@@ -115,8 +117,8 @@ console.log(event.type,"type")
             description: `Rent for ${book.title}`,
             customer: userId, 
         });
-console.log("paymentIntent",paymentIntent)    
-        await BookBorrowing.create({ borrower: userId, book: bookId, rentalFee: rentAmount });
+
+        await BookBorrowing.create({ borrower: userId, book: bookId, rentalFee: rentAmount,dueDate:dueDate });
     
         // Update book availability and sales count
         book.availableQuantity -= 1;
