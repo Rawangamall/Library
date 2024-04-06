@@ -111,11 +111,10 @@ class BorrowingOperations {
           return res.status(404).json({ error: 'Book not found' });
       }
     
-        const paymentIntent = await stripe.paymentIntents.create({
+         await stripe.paymentIntents.create({
             amount: rentAmount * 100, 
             currency: 'usd',
             description: `Rent for ${book.title}`,
-            customer: userId, 
         });
 
         await BookBorrowing.create({ borrower: userId, book: bookId, rentalFee: rentAmount,dueDate:dueDate });

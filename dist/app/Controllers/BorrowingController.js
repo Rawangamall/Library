@@ -129,11 +129,10 @@ BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next)
         if (!book) {
             return res.status(404).json({ error: 'Book not found' });
         }
-        const paymentIntent = yield stripe.paymentIntents.create({
+        yield stripe.paymentIntents.create({
             amount: rentAmount * 100,
             currency: 'usd',
             description: `Rent for ${book.title}`,
-            customer: userId,
         });
         yield BorrowingModel_1.default.create({ borrower: userId, book: bookId, rentalFee: rentAmount, dueDate: dueDate });
         // Update book availability and sales count
