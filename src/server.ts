@@ -34,11 +34,23 @@ server.use(
       origin: "*",
     })
     );
-
+    declare module 'http' {
+        interface IncomingMessage {
+            originalUrl?: string;
+            rawBody?: string;
+        }
+    }
+    
 //body parse
-server.use(express.json());
 server.use(express.urlencoded({extended:false}));
-
+server.use(express.json({
+    verify: function (req, res, buf) {
+        var url = req.originalUrl;
+        if (url?.startsWith('/rentBooks/charge')) {
+            req.rawBody = buf.toString()
+        }
+    }
+}));
 //Routes 
  server.use(LoginRoute)
  server.use(UserRoute)

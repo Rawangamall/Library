@@ -84,7 +84,7 @@ class BorrowingOperations {
   });
 
   static chargeForBorrow = CatchAsync(async(req,res,next) =>{
-    const payload = req.body.toString();
+    const payload = req.rawBody as string | Buffer
     const sig = req.headers['stripe-signature'];
 
     // Verify webhook signature
