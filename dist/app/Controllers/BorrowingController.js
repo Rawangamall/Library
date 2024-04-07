@@ -125,6 +125,10 @@ BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next)
         if (!userId || !bookId || !rentAmount) {
             return res.status(400).json({ error: 'Missing metadata in session object' });
         }
+        const existingOperation = yield BorrowingModel_1.default.findOne({ sessionId: session.id });
+        if (existingOperation) {
+            return res.status(400).json({ message: 'This payment operation is already completed!' }); // duplicate event
+        }
         const book = yield BookModel_1.default.findById(bookId);
         if (!book) {
             return res.status(404).json({ error: 'Book not found' });
@@ -134,7 +138,8 @@ BorrowingOperations.chargeForBorrow = (0, CatchAsync_1.default)((req, res, next)
             currency: 'usd',
             description: `Rent for ${book.title}`,
         });
-        yield BorrowingModel_1.default.create({ borrower: userId, book: bookId, rentalFee: rentAmount, dueDate: dueDate });
+        yield BorrowingModel_1.default.create({ borrower: userId, book: bookId,
+            rentalFee: rentAmount, dueDate: dueDate, sessionId: session.id });
         // Update book availability and sales count
         book.availableQuantity -= 1;
         book.sales += 1;

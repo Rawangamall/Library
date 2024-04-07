@@ -106,10 +106,17 @@ class BorrowingOperations {
           return res.status(400).json({ error: 'Missing metadata in session object' });
       }
 
+      const existingOperation = await BookBorrowing.findOne({ sessionId: session.id });
+      if (existingOperation) {
+          return res.status(400).json({ message: 'This payment operation is already completed!' }); // duplicate event
+      }
+
       const book = await Book.findById(bookId);
       if (!book) {
           return res.status(404).json({ error: 'Book not found' });
       }
+
+
     
          await stripe.paymentIntents.create({
             amount: rentAmount * 100, 
@@ -117,7 +124,8 @@ class BorrowingOperations {
             description: `Rent for ${book.title}`,
         });
 
-        await BookBorrowing.create({ borrower: userId, book: bookId, rentalFee: rentAmount,dueDate:dueDate });
+        await BookBorrowing.create({ borrower: userId, book: bookId, 
+          rentalFee: rentAmount,dueDate:dueDate , sessionId: session.id});
     
         // Update book availability and sales count
         book.availableQuantity -= 1;

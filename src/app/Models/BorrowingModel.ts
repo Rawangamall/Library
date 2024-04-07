@@ -22,8 +22,13 @@ const bookBorrowingSchema = new Schema({
     default: false
   },
   rentalFee: {
-    type: Number, // Only applicable for rental books
+    type: Number, // total price for rental books
     default: 0
+  } ,
+  sessionId:{   //trans payment id for rental books
+    type:String,
+    required:false,
+    default:null
   }
 }, { timestamps: true });
 
