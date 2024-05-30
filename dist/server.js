@@ -12,6 +12,7 @@ const UserRoute_1 = __importDefault(require("./app/Routes/UserRoute"));
 const BorrowerRoute_1 = __importDefault(require("./app/Routes/BorrowerRoute"));
 const BookRoute_1 = __importDefault(require("./app/Routes/BookRoute"));
 const BorrowingRoute_1 = __importDefault(require("./app/Routes/BorrowingRoute"));
+const localizationConfig_1 = __importDefault(require("./app/Utils/localizationConfig"));
 //server
 const server = (0, express_1.default)();
 let port = process.env.PORT || 8080;
@@ -32,14 +33,9 @@ server.use((0, cors_1.default)({
 }));
 //body parse
 server.use(express_1.default.urlencoded({ extended: false }));
-server.use(express_1.default.json({
-    verify: function (req, res, buf) {
-        var url = req.originalUrl;
-        if (url === null || url === void 0 ? void 0 : url.startsWith('/rentBooks/charge')) {
-            req.rawBody = buf.toString();
-        }
-    }
-}));
+server.use(express_1.default.json());
+//localization 
+server.use(localizationConfig_1.default.init);
 //Routes 
 server.use(LoginRoute_1.default);
 server.use(UserRoute_1.default);

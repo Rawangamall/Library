@@ -71,7 +71,7 @@ BookController.getBook = (0, CatchAsync_1.default)((req, res, next) => __awaiter
 BookController.getAllBooks = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { searchTerm, limit } = req.query;
     const limitValue = typeof limit === 'string' ? parseInt(limit) : 7;
-    const sortField = req.query.sortField || "createdAt";
+    const sortField = req.query.sort || "createdAt";
     const queryOperations = new QueryOperations_1.default();
     let bookQuery = BookModel_1.default.find();
     if (searchTerm) {
@@ -82,7 +82,7 @@ BookController.getAllBooks = (0, CatchAsync_1.default)((req, res, next) => __awa
     if (books.length == 0) {
         return res.status(400).json({ error: "There's no book" });
     }
-    res.status(200).json(books);
+    res.status(200).json({ message: res.translate("book_list"), books });
 }));
 BookController.UpdateBook = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const bookId = req.params.id;
@@ -134,7 +134,7 @@ BookController.popularBooks = (0, CatchAsync_1.default)((req, res, next) => __aw
     var _c;
     const limit = parseInt((_c = req.query) === null || _c === void 0 ? void 0 : _c.limit) || 10;
     const books = yield BookModel_1.default.find({ rating: { $in: [9, 10] } }).limit(limit); //.explain('executionStats')
-    res.json({ message: "success", books });
+    res.json({ message: res.translate("popular_list"), books });
 }));
 BookController.rateBook = (0, CatchAsync_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _d, _e;

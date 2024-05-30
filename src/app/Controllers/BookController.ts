@@ -46,7 +46,7 @@ class BookController {
     static getAllBooks =CatchAsync(async (req,res,next)=>{
       const { searchTerm, limit }: GetUsersQueryParams = req.query;
       const limitValue: number = typeof limit === 'string' ? parseInt(limit) : 7;
-      const sortField: string = req.query.sortField as string || "createdAt"; 
+      const sortField: string = req.query.sort as string || "createdAt"; 
   
       const queryOperations = new QueryOperation();
 
@@ -63,7 +63,7 @@ class BookController {
           return res.status(400).json({ error: "There's no book" });
       }
   
-      res.status(200).json(books);
+      res.status(200).json({message:res.translate("book_list"),books});
   
     });
   
@@ -127,12 +127,12 @@ class BookController {
 
     res.status(200).json(books)
   });
-
+ 
   static popularBooks = CatchAsync(async (req,res,next) =>{
     const limit = parseInt(req.query?.limit as string) || 10
 
     const books = await Book.find({ rating: { $in: [9, 10] } }).limit(limit)    //.explain('executionStats')
-    res.json({message:"success",books})
+    res.json({message:res.translate("popular_list"),books})
   });
 
   static rateBook = CatchAsync(async (req,res,next)=>{

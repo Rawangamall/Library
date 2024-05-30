@@ -9,6 +9,7 @@ require("dotenv").config({ path: "config.env" });
  import BorrowerRoute from "./app/Routes/BorrowerRoute";
 import BookRoute from "./app/Routes/BookRoute";
 import OperationRoute from "./app/Routes/BorrowingRoute";
+import i18n from "./app/Utils/localizationConfig";
 
 //server
 const server = express();
@@ -43,14 +44,12 @@ server.use(
     
 //body parse
 server.use(express.urlencoded({extended:false}));
-server.use(express.json({
-    verify: function (req, res, buf) {
-        var url = req.originalUrl;
-        if (url?.startsWith('/rentBooks/charge')) {
-            req.rawBody = buf.toString()
-        }
-    }
-}));
+server.use(express.json());
+
+//localization 
+server.use(i18n.init)
+
+
 //Routes 
  server.use(LoginRoute)
  server.use(UserRoute)

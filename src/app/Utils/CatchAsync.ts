@@ -2,9 +2,13 @@
 
 import { Request, Response, NextFunction } from 'express'; 
 
-const CatchAsync = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => {
+interface CustomResponse extends Response {
+  translate: (key: string, ...args: any[]) => string;
+}
+
+const CatchAsync = (fn: (req: Request, res: CustomResponse, next: NextFunction) => Promise<any>) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    fn(req, res, next).catch(next);
+    fn(req, res as CustomResponse, next).catch(next);
   };
 };
 
